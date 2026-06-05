@@ -23,10 +23,17 @@ async function migrate(db: SQLite.SQLiteDatabase): Promise<void> {
     "ALTER TABLE profile ADD COLUMN invoiceFooterText TEXT DEFAULT ''",
     'ALTER TABLE profile ADD COLUMN invoiceShowSignatures INTEGER DEFAULT 1',
     "ALTER TABLE profile ADD COLUMN invoiceTemplate TEXT DEFAULT 'modern'",
+    "ALTER TABLE app_settings ADD COLUMN dataStorageMode TEXT DEFAULT 'local'",
+    "ALTER TABLE app_settings ADD COLUMN dataStorageModeConfirmed INTEGER DEFAULT 1",
   ];
   for (const sql of migrations) {
     try { await db.execAsync(sql); } catch { /* exists */ }
   }
+
+  await db.runAsync(
+    `UPDATE app_settings SET dataStorageModeConfirmed = 1
+     WHERE dataStorageModeConfirmed IS NULL OR dataStorageModeConfirmed = 1`,
+  ).catch(() => undefined);
 }
 
 async function openFreshDatabase(): Promise<SQLite.SQLiteDatabase> {

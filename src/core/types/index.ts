@@ -11,6 +11,9 @@ export type Currency = 'TOMAN' | 'RIAL' | 'USD' | 'EUR' | 'AED';
 
 export type SubscriptionPlan = 'free' | 'pro';
 
+/** local = SQLite/IndexedDB روی دستگاه | cloud = سرور فریلنس پلاس */
+export type DataStorageMode = 'local' | 'cloud';
+
 export type InvoiceTemplate = 'classic' | 'modern' | 'minimal';
 
 export interface InvoiceStyleSettings {
@@ -122,6 +125,8 @@ export interface AppSettings {
   subscriptionExpiresAt: string | null;
   notificationsEnabled: boolean;
   onboardingCompleted: boolean;
+  dataStorageMode: DataStorageMode;
+  dataStorageModeConfirmed: boolean;
 }
 
 export interface DashboardStats {

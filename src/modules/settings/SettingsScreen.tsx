@@ -9,6 +9,7 @@ import type { MoreStackParamList } from '@/navigation/types';
 import { useThemeStore } from '@/stores/themeStore';
 import { useAuth } from '@/hooks/useAuth';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
+import { StorageModeSettingsSection } from '@/modules/settings/StorageModeSettingsSection';
 
 const listTitleStyle = { textAlign: 'right' as const, writingDirection: 'rtl' as const };
 const listDescStyle = { textAlign: 'right' as const, writingDirection: 'rtl' as const };
@@ -28,6 +29,7 @@ export function SettingsScreen() {
       <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 16, textAlign: 'right', writingDirection: 'rtl' }}>
         تنظیمات عمومی اپلیکیشن
       </Text>
+      <StorageModeSettingsSection />
       <List.Section style={styles.section}>
         <List.Item
           title="استایل فاکتور"

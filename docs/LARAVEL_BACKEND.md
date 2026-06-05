@@ -137,6 +137,8 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
+    Route::get('user/preferences', [UserPreferencesController::class, 'show']);
+    Route::put('user/preferences', [UserPreferencesController::class, 'update']);
     Route::post('subscriptions/verify', [SubscriptionController::class, 'verifyBazaar']);
     Route::post('subscriptions/checkout', [SubscriptionController::class, 'checkoutZibal']);
     Route::get('subscriptions/checkout/{orderId}', [SubscriptionController::class, 'checkoutStatus']);

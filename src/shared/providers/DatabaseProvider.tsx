@@ -6,6 +6,7 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useOnboardingStore } from '@/stores/onboardingStore';
+import { useStorageModeStore } from '@/stores/storageModeStore';
 import { OnboardingOverlay } from '@/shared/components/OnboardingOverlay';
 import { AppSplash } from '@/shared/components/AppSplash';
 
@@ -40,6 +41,7 @@ export function DatabaseProvider({ children }: { children: React.ReactNode }) {
         await useThemeStore.getState().load();
         await useProfileStore.getState().load();
         await useSubscriptionStore.getState().load();
+        await useStorageModeStore.getState().load();
         await useOnboardingStore.getState().load();
         if (!cancelled) setIsReady(true);
       } catch (e) {

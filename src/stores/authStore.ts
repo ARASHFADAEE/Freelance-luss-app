@@ -6,6 +6,7 @@ import { syncAuthUserToProfile } from '@/services/auth/syncAuthProfile';
 import { storageService } from '@/services/storage/StorageService';
 import { subscriptionSyncService } from '@/services/subscription/SubscriptionSyncService';
 import { trialService } from '@/services/subscription/trialService';
+import { storageModeService } from '@/services/cloud/storageModeService';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 interface AuthState {
@@ -90,6 +91,9 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const res = await authService.verifyOtp(phone, code);
     await subscriptionSyncService.applyFromMe(res.subscription);
     await applyAuthenticatedUser(res.user);
+    if (res.user.isNewUser) {
+      await storageModeService.prepareNewUserSetup();
+    }
     set({ isAuthenticated: true, user: res.user, phone: res.user.phone });
   },
 

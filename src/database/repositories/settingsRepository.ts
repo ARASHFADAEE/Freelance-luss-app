@@ -1,4 +1,4 @@
-import type { AppSettings } from '@/core/types';
+import type { AppSettings, DataStorageMode } from '@/core/types';
 import { BaseRepository } from './base';
 
 const DEFAULT_SETTINGS_ID = 'default-settings';
@@ -13,6 +13,8 @@ export class SettingsRepository extends BaseRepository {
       subscriptionExpiresAt: string | null;
       notificationsEnabled: number;
       onboardingCompleted?: number;
+      dataStorageMode?: string;
+      dataStorageModeConfirmed?: number;
     }>('SELECT * FROM app_settings LIMIT 1');
 
     if (row) {
@@ -23,6 +25,8 @@ export class SettingsRepository extends BaseRepository {
         subscriptionExpiresAt: row.subscriptionExpiresAt,
         notificationsEnabled: row.notificationsEnabled === 1,
         onboardingCompleted: (row.onboardingCompleted ?? 0) === 1,
+        dataStorageMode: (row.dataStorageMode === 'cloud' ? 'cloud' : 'local') as DataStorageMode,
+        dataStorageModeConfirmed: (row.dataStorageModeConfirmed ?? 1) === 1,
       };
     }
 
@@ -33,11 +37,13 @@ export class SettingsRepository extends BaseRepository {
       subscriptionExpiresAt: null,
       notificationsEnabled: true,
       onboardingCompleted: false,
+      dataStorageMode: 'local',
+      dataStorageModeConfirmed: false,
     };
     await db.runAsync(
-      `INSERT INTO app_settings (id, darkMode, subscriptionPlan, subscriptionExpiresAt, notificationsEnabled, onboardingCompleted)
-       VALUES (?, ?, ?, ?, ?, ?)`,
-      defaults.id, 0, defaults.subscriptionPlan, null, 1, 0,
+      `INSERT INTO app_settings (id, darkMode, subscriptionPlan, subscriptionExpiresAt, notificationsEnabled, onboardingCompleted, dataStorageMode, dataStorageModeConfirmed)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      defaults.id, 0, defaults.subscriptionPlan, null, 1, 0, defaults.dataStorageMode, 0,
     );
     return defaults;
   }
@@ -48,12 +54,15 @@ export class SettingsRepository extends BaseRepository {
     const updated = { ...existing, ...data };
     await db.runAsync(
       `UPDATE app_settings SET darkMode = ?, subscriptionPlan = ?,
-        subscriptionExpiresAt = ?, notificationsEnabled = ?, onboardingCompleted = ? WHERE id = ?`,
+        subscriptionExpiresAt = ?, notificationsEnabled = ?, onboardingCompleted = ?,
+        dataStorageMode = ?, dataStorageModeConfirmed = ? WHERE id = ?`,
       updated.darkMode ? 1 : 0,
       updated.subscriptionPlan,
       updated.subscriptionExpiresAt,
       updated.notificationsEnabled ? 1 : 0,
       updated.onboardingCompleted ? 1 : 0,
+      updated.dataStorageMode,
+      updated.dataStorageModeConfirmed ? 1 : 0,
       updated.id,
     );
     return updated;

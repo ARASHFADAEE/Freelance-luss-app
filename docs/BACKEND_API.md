@@ -3,7 +3,8 @@
 این سند برای تیم بک‌اند است تا **ورود با OTP** و **سیستم اشتراک Pro** را پیاده‌سازی و به اپ موبایل متصل کنند.
 
 > **پیاده‌سازی Laravel:** جزئیات migration، SMS.ir و Cafe Bazaar در [`LARAVEL_BACKEND.md`](./LARAVEL_BACKEND.md)  
-> **انتشار کافه‌بازار:** [`CAFE_BAZAAR_RELEASE.md`](./CAFE_BAZAAR_RELEASE.md)
+> **انتشار کافه‌بازار:** [`CAFE_BAZAAR_RELEASE.md`](./CAFE_BAZAAR_RELEASE.md)  
+> **همگام‌سازی ابری (CRUD کامل):** [`CLOUD_SYNC_API.md`](./CLOUD_SYNC_API.md)
 
 ### مسیرهای API در اپ موبایل (Production)
 
