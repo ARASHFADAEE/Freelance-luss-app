@@ -2,6 +2,7 @@ import * as Print from 'expo-print';
 import * as Sharing from 'expo-sharing';
 import type { InvoiceRenderData } from './invoiceTemplate';
 import { buildInvoiceHtml } from './invoiceTemplate';
+import { getInvoiceExportFontCss } from './invoiceExportFont';
 
 async function uriToDataUrl(uri: string): Promise<string | undefined> {
   if (uri.startsWith('data:')) return uri;
@@ -31,7 +32,8 @@ async function prepareExportData(data: InvoiceRenderData): Promise<InvoiceRender
 
 export async function generateInvoicePdf(data: InvoiceRenderData): Promise<string> {
   const exportData = await prepareExportData(data);
-  const html = buildInvoiceHtml(exportData);
+  const embeddedFontCss = await getInvoiceExportFontCss();
+  const html = buildInvoiceHtml(exportData, { embeddedFontCss });
   const { uri } = await Print.printToFileAsync({
     html,
     base64: false,

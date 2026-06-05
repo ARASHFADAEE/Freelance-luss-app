@@ -53,7 +53,8 @@ async function renderInvoiceToPngDataUrl(data: InvoiceRenderData): Promise<{
   height: number;
 }> {
   const exportData = await prepareExportData(data);
-  const html = buildInvoiceHtml(exportData, { skipExternalFonts: true, forExport: true });
+  const embeddedFontCss = await getInvoiceExportFontCss();
+  const html = buildInvoiceHtml(exportData, { forExport: true, embeddedFontCss });
 
   const iframe = document.createElement('iframe');
   iframe.style.position = 'fixed';
@@ -74,13 +75,12 @@ async function renderInvoiceToPngDataUrl(data: InvoiceRenderData): Promise<{
   doc.write(html);
   doc.close();
 
-  await new Promise((r) => setTimeout(r, 200));
+  await waitForExportFonts(doc);
+  await waitForImages(doc.body);
 
   const body = doc.body;
   const contentHeight = Math.max(body.scrollHeight, body.offsetHeight, INVOICE_EXPORT_MIN_HEIGHT_PX);
   iframe.style.height = `${contentHeight}px`;
-
-  await waitForImages(body);
 
   const captureWidth = INVOICE_EXPORT_WIDTH_PX;
   const captureHeight = Math.max(body.scrollHeight, INVOICE_EXPORT_MIN_HEIGHT_PX);
@@ -90,7 +90,7 @@ async function renderInvoiceToPngDataUrl(data: InvoiceRenderData): Promise<{
       cacheBust: true,
       pixelRatio: 2,
       backgroundColor: '#ffffff',
-      skipFonts: true,
+      skipFonts: false,
       width: captureWidth,
       height: captureHeight,
       style: {
