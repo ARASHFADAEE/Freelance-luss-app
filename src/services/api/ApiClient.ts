@@ -1,5 +1,6 @@
 import { API_BASE_URL, getAppHeaders, IS_API_CONFIGURED } from '@/core/config/env';
 import { storageService } from '@/services/storage/StorageService';
+import { normalizeTokenRefreshResponse } from '@/services/api/normalizeAuthResponse';
 import { ApiError, type ApiErrorBody } from './types';
 
 type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -30,7 +31,7 @@ async function refreshAccessToken(): Promise<string | null> {
   const res = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
     method: 'POST',
     headers: getAppHeaders(),
-    body: JSON.stringify({ refreshToken }),
+    body: JSON.stringify({ refreshToken, refresh_token: refreshToken }),
   });
 
   if (!res.ok) {
@@ -38,7 +39,7 @@ async function refreshAccessToken(): Promise<string | null> {
     return null;
   }
 
-  const data = (await res.json()) as { accessToken: string; refreshToken?: string };
+  const data = normalizeTokenRefreshResponse(await res.json());
   await storageService.setTokens(data.accessToken, data.refreshToken ?? refreshToken);
   return data.accessToken;
 }

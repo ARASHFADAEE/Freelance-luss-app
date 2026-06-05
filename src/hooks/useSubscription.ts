@@ -12,6 +12,9 @@ export function useSubscription() {
   const subscriptionType = useSubscriptionStore((s) => s.subscriptionType);
   const isLoaded = useSubscriptionStore((s) => s.isLoaded);
   const isPremium = useSubscriptionStore((s) => s.isPremium);
+  const isInTrial = useSubscriptionStore((s) => s.isInTrial);
+  const hasProFeatures = useSubscriptionStore((s) => s.hasProFeatures);
+  const getTrialDaysRemaining = useSubscriptionStore((s) => s.getTrialDaysRemaining);
   const load = useSubscriptionStore((s) => s.load);
 
   const paymentProvider = getPaymentProvider();
@@ -22,6 +25,9 @@ export function useSubscription() {
     subscriptionType,
     isLoaded,
     isPremium: isPremium(),
+    isInTrial: isInTrial(),
+    hasProFeatures: hasProFeatures(),
+    trialDaysRemaining: getTrialDaysRemaining(),
     isPremiumFn: isPremium,
     load,
     paymentProvider,

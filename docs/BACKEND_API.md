@@ -9,8 +9,8 @@
 
 | عملیات | مسیر (فعلی اپ) | مسیر قدیمی در این سند |
 |--------|----------------|------------------------|
-| ارسال OTP | `POST /api/auth/send-otp` | `/api/v1/auth/otp/send` |
-| تأیید OTP | `POST /api/auth/verify-otp` | `/api/v1/auth/otp/verify` |
+| ارسال OTP | `POST /api/auth/otp/send` | `/api/auth/send-otp` |
+| تأیید OTP | `POST /api/auth/otp/verify` | `/api/auth/verify-otp` |
 | تازه‌سازی | `POST /api/auth/refresh` | `/api/v1/auth/refresh` |
 | خروج | `POST /api/auth/logout` | `/api/v1/auth/logout` |
 | پروفایل | `GET /api/auth/me` | — |

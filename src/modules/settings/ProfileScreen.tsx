@@ -1,29 +1,50 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Image, StyleSheet, View } from 'react-native';
-import { Button, Menu } from 'react-native-paper';
+import { Button, Menu, Text } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { useAuth } from '@/hooks/useAuth';
 import { CURRENCY_LABELS } from '@/core/constants';
 import type { Currency } from '@/core/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { FormTextInput } from '@/shared/components/FormTextInput';
+import { useAppTheme } from '@/core/theme/useAppTheme';
+import { confirmLogout } from '@/core/utils/confirm';
 
 export function ProfileScreen() {
+  const theme = useAppTheme();
   const profile = useProfileStore((s) => s.profile);
   const update = useProfileStore((s) => s.update);
+  const { user, logout } = useAuth();
   const canUseMultiCurrency = useSubscriptionStore((s) => s.canUseMultiCurrency);
   const [currencyMenuVisible, setCurrencyMenuVisible] = useState(false);
 
-  const [fullName, setFullName] = useState(profile?.fullName ?? '');
-  const [phone, setPhone] = useState(profile?.phone ?? '');
-  const [email, setEmail] = useState(profile?.email ?? '');
-  const [address, setAddress] = useState(profile?.address ?? '');
-  const [website, setWebsite] = useState(profile?.website ?? '');
-  const [taxRate, setTaxRate] = useState(String(profile?.taxRate ?? 9));
-  const [currency, setCurrency] = useState<Currency>(profile?.currency ?? 'TOMAN');
-  const [logo, setLogo] = useState(profile?.logo ?? null);
+  const [fullName, setFullName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [email, setEmail] = useState('');
+  const [address, setAddress] = useState('');
+  const [website, setWebsite] = useState('');
+  const [taxRate, setTaxRate] = useState('9');
+  const [currency, setCurrency] = useState<Currency>('TOMAN');
+  const [logo, setLogo] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!profile) return;
+    setFullName(profile.fullName || user?.fullName || '');
+    setPhone(profile.phone || user?.phone || '');
+    setEmail(profile.email ?? '');
+    setAddress(profile.address ?? '');
+    setWebsite(profile.website ?? '');
+    setTaxRate(String(profile.taxRate ?? 9));
+    setCurrency(profile.currency ?? 'TOMAN');
+    setLogo(profile.logo ?? null);
+  }, [profile, user]);
+
+  const handleLogout = () => {
+    confirmLogout(() => logout());
+  };
 
   const pickLogo = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -55,6 +76,16 @@ export function ProfileScreen() {
 
   return (
     <ScreenContainer>
+      {user ? (
+        <View style={[styles.accountBox, { backgroundColor: theme.colors.primary + '10', borderColor: theme.colors.primary + '40' }]}>
+          <Text variant="labelMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>حساب متصل</Text>
+          <Text variant="titleMedium" style={{ fontWeight: '700', textAlign: 'right' }}>{user.phone}</Text>
+          {user.fullName ? (
+            <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>{user.fullName}</Text>
+          ) : null}
+        </View>
+      ) : null}
+
       <View style={styles.logoSection}>
         {logo ? <Image source={{ uri: logo }} style={styles.logo} /> : <View style={styles.logoPlaceholder} />}
         <Button mode="outlined" onPress={pickLogo}>انتخاب لوگو</Button>
@@ -82,11 +113,16 @@ export function ProfileScreen() {
       <Button mode="contained" onPress={handleSave} loading={saving} style={{ marginTop: 16 }}>
         ذخیره پروفایل
       </Button>
+
+      <Button mode="outlined" onPress={handleLogout} icon="logout" style={{ marginTop: 12 }} textColor={theme.custom.danger}>
+        خروج از حساب
+      </Button>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
+  accountBox: { borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16, gap: 4 },
   logoSection: { alignItems: 'center', marginBottom: 20, gap: 12 },
   logo: { width: 100, height: 100, borderRadius: 50 },
   logoPlaceholder: { width: 100, height: 100, borderRadius: 50, backgroundColor: '#e5e7eb' },

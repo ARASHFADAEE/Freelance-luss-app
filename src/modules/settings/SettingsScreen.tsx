@@ -1,6 +1,7 @@
 import React from 'react';
-import { Alert, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { Button, List, Switch, Text, useTheme } from 'react-native-paper';
+import { confirmLogout } from '@/core/utils/confirm';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { IS_API_CONFIGURED } from '@/core/config/env';
@@ -19,10 +20,7 @@ export function SettingsScreen() {
   const { isAuthenticated, user, logout } = useAuth();
 
   const handleLogout = () => {
-    Alert.alert('خروج از حساب', 'آیا مطمئن هستید؟', [
-      { text: 'انصراف', style: 'cancel' },
-      { text: 'خروج', style: 'destructive', onPress: () => logout() },
-    ]);
+    confirmLogout(() => logout());
   };
 
   return (
@@ -72,7 +70,7 @@ export function SettingsScreen() {
         )}
       </List.Section>
 
-      {IS_API_CONFIGURED && isAuthenticated && (
+      {isAuthenticated && (
         <Button mode="outlined" onPress={handleLogout} style={{ marginTop: 8 }}>
           خروج از حساب
         </Button>

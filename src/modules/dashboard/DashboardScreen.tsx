@@ -18,7 +18,8 @@ export function DashboardScreen() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const profile = useProfileStore((s) => s.profile);
-  const isPro = useSubscriptionStore((s) => s.plan === 'pro');
+  const hasProFeatures = useSubscriptionStore((s) => s.hasProFeatures);
+  const isInTrial = useSubscriptionStore((s) => s.isInTrial);
   const currency = profile?.currency ?? 'TOMAN';
 
   const { data: stats, isLoading } = useQuery({
@@ -29,7 +30,7 @@ export function DashboardScreen() {
   const { data: monthlyData = [] } = useQuery({
     queryKey: ['monthly-data'],
     queryFn: () => analyticsRepository.getMonthlyData(6),
-    enabled: isPro,
+    enabled: hasProFeatures(),
   });
 
   const chartData = monthlyData.map((m) => ({
@@ -44,7 +45,7 @@ export function DashboardScreen() {
         <Text variant="titleLarge" style={{ fontWeight: '700', textAlign: 'right' }}>{APP_NAME}</Text>
         <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>
           {profile?.fullName ? `سلام ${profile.fullName}` : 'خلاصه مالی'}
-          {isPro ? ' · Pro' : ''}
+          {hasProFeatures() ? (isInTrial() ? ' · دوره آزمایشی' : ' · Pro') : ''}
         </Text>
       </View>
 
@@ -61,7 +62,7 @@ export function DashboardScreen() {
         </View>
       ) : null}
 
-      {isPro && chartData.length > 0 && (
+      {hasProFeatures() && chartData.length > 0 && (
         <View style={[styles.chartBox, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
           <Text variant="labelLarge" style={{ textAlign: 'right', marginBottom: 4, fontWeight: '600' }}> نمودار ۶ ماه اخیر</Text>
           <Text variant="labelSmall" style={{ textAlign: 'right', color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>بر اساس میلیون تومان</Text>
@@ -74,9 +75,9 @@ export function DashboardScreen() {
         </View>
       )}
 
-      {!isPro && (
+      {!hasProFeatures() && (
         <Text variant="bodySmall" style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
-          نمودارها با اشتراک Pro فعال می‌شود
+          نمودارها با اشتراک Pro یا دوره آزمایشی ۳ روزه فعال می‌شود
         </Text>
       )}
     </ScreenContainer>

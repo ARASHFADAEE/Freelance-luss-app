@@ -7,7 +7,8 @@ import {
   projectRepository,
   settingsRepository,
 } from '@/database';
-import { storageService } from '@/services/storage/StorageService';
+import { storageService, StorageKeys } from '@/services/storage/StorageService';
+import { trialService } from '@/services/subscription/trialService';
 
 interface SubscriptionState {
   plan: SubscriptionPlan;
@@ -15,9 +16,13 @@ interface SubscriptionState {
   subscriptionType: string | null;
   userAccess: 'free' | 'premium';
   lastValidationAt: string | null;
+  trialStartedAt: string | null;
   isLoaded: boolean;
   load: () => Promise<void>;
   isPremium: () => boolean;
+  isInTrial: () => boolean;
+  hasProFeatures: () => boolean;
+  getTrialDaysRemaining: () => number;
   canAddClient: () => Promise<boolean>;
   canAddProject: () => Promise<boolean>;
   canAddInvoice: () => Promise<boolean>;
@@ -40,14 +45,17 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
   subscriptionType: null,
   userAccess: 'free',
   lastValidationAt: null,
+  trialStartedAt: null,
   isLoaded: false,
 
   load: async () => {
-    const [settings, meta] = await Promise.all([
+    const [settings, meta, userId] = await Promise.all([
       settingsRepository.get(),
       storageService.getSubscriptionMeta(),
+      storageService.getItem(StorageKeys.USER_ID),
     ]);
 
+    const trialStartedAt = await trialService.getTrialStartedAtForUser(userId);
     const plan = settings.subscriptionPlan;
     const expiresAt = settings.subscriptionExpiresAt;
     const premium = computeIsPremium(plan, expiresAt);
@@ -58,11 +66,18 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
       subscriptionType: meta.subscriptionType,
       userAccess: premium ? 'premium' : 'free',
       lastValidationAt: meta.lastValidationAt,
+      trialStartedAt,
       isLoaded: true,
     });
   },
 
   isPremium: () => computeIsPremium(get().plan, get().expiresAt),
+
+  isInTrial: () => trialService.isInTrial(get().trialStartedAt),
+
+  hasProFeatures: () => get().isPremium() || trialService.isInTrial(get().trialStartedAt),
+
+  getTrialDaysRemaining: () => trialService.getTrialDaysRemaining(get().trialStartedAt),
 
   canAddClient: async () => {
     if (get().isPremium()) return true;
@@ -82,9 +97,9 @@ export const useSubscriptionStore = create<SubscriptionState>((set, get) => ({
     return count < FREE_PLAN_LIMITS.invoices;
   },
 
-  canUsePdf: () => get().isPremium(),
-  canUseReports: () => get().isPremium(),
-  canUseBackup: () => get().isPremium(),
-  canUseCharts: () => get().isPremium(),
-  canUseMultiCurrency: () => get().isPremium(),
+  canUsePdf: () => get().hasProFeatures(),
+  canUseReports: () => get().hasProFeatures(),
+  canUseBackup: () => get().hasProFeatures(),
+  canUseCharts: () => get().hasProFeatures(),
+  canUseMultiCurrency: () => get().hasProFeatures(),
 }));

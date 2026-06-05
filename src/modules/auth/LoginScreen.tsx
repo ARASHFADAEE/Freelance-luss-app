@@ -3,12 +3,12 @@ import { StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { IS_API_CONFIGURED } from '@/core/config/env';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { FormTextInput } from '@/shared/components/FormTextInput';
 import { useAuth } from '@/hooks/useAuth';
 import type { AuthStackParamList } from '@/navigation/types';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export function LoginScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
@@ -36,14 +36,17 @@ export function LoginScreen() {
         <MaterialCommunityIcons name="shield-account" size={56} color="#1e3a8a" />
         <Text variant="headlineSmall" style={styles.title}>ورود به فریلنس پلاس</Text>
         <Text variant="bodyMedium" style={styles.subtitle}>
-          با شماره موبایل وارد شوید. داده‌های حسابداری فقط روی دستگاه شما ذخیره می‌شوند.
+          برای استفاده از اپ، با شماره موبایل وارد شوید یا ثبت‌نام کنید.
+          {'\n'}۳ روز اول تمام امکانات Pro رایگان است.
         </Text>
       </View>
 
       {!IS_API_CONFIGURED && (
         <View style={styles.warnBox}>
-          <Text variant="bodySmall" style={{ textAlign: 'right', lineHeight: 20 }}>
-            EXPO_PUBLIC_API_URL تنظیم نشده — برای تست محلی می‌توانید بدون API از اپ استفاده کنید.
+          <Text variant="bodySmall" style={{ textAlign: 'right', lineHeight: 22 }}>
+            آدرس API تنظیم نشده است.{'\n'}
+            فایل <Text style={{ fontWeight: '700' }}>.env</Text> را بسازید و مقدار{' '}
+            <Text style={{ fontWeight: '700' }}>EXPO_PUBLIC_API_URL</Text> را قرار دهید.
           </Text>
         </View>
       )}
@@ -59,7 +62,7 @@ export function LoginScreen() {
 
       {error ? <Text variant="bodySmall" style={styles.error}>{error}</Text> : null}
 
-      <Button mode="contained" onPress={handleContinue} loading={loading} disabled={!IS_API_CONFIGURED}>
+      <Button mode="contained" onPress={handleContinue} loading={loading} disabled={!IS_API_CONFIGURED || !phone.trim()}>
         دریافت کد تأیید
       </Button>
     </ScreenContainer>

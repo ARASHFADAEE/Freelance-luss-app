@@ -2,7 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Button, Snackbar, Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import { FREE_PLAN_LIMITS } from '@/core/constants';
+import { FREE_PLAN_LIMITS, TRIAL_DAYS } from '@/core/constants';
+import { TrialBanner } from '@/shared/components/TrialBanner';
 import { formatJalaliDate, formatPersianNumber } from '@/core/utils/persian';
 import { useAppTheme } from '@/core/theme/useAppTheme';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -22,6 +23,8 @@ export function SubscriptionScreen() {
   const theme = useAppTheme();
   const {
     isPremium,
+    isInTrial,
+    trialDaysRemaining,
     expiresAt,
     subscriptionType,
     purchasePlan,
@@ -99,6 +102,10 @@ export function SubscriptionScreen() {
 
   return (
     <ScreenContainer>
+      {isInTrial && !isPremium && (
+        <TrialBanner daysRemaining={trialDaysRemaining} />
+      )}
+
       {isPremium ? (
         <View style={[styles.activeBox, { backgroundColor: theme.custom.success + '12', borderColor: theme.custom.success }]}>
           <MaterialCommunityIcons name="crown" size={28} color={theme.custom.success} />
@@ -120,7 +127,9 @@ export function SubscriptionScreen() {
         <View style={[styles.planBox, { borderColor: theme.colors.outlineVariant }]}>
           <Text variant="titleMedium" style={styles.planTitle}>پلن رایگان (فعلی)</Text>
           <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right', marginTop: 8, lineHeight: 22 }}>
-            حداکثر {formatPersianNumber(FREE_PLAN_LIMITS.clients)} مشتری · {formatPersianNumber(FREE_PLAN_LIMITS.projects)} پروژه · {formatPersianNumber(FREE_PLAN_LIMITS.invoices)} فاکتور
+            {isInTrial
+              ? `دوره آزمایشی ${formatPersianNumber(TRIAL_DAYS)} روزه — امکانات Pro فعال · حداکثر ${formatPersianNumber(FREE_PLAN_LIMITS.clients)} مشتری · ${formatPersianNumber(FREE_PLAN_LIMITS.projects)} پروژه · ${formatPersianNumber(FREE_PLAN_LIMITS.invoices)} فاکتور`
+              : `حداکثر ${formatPersianNumber(FREE_PLAN_LIMITS.clients)} مشتری · ${formatPersianNumber(FREE_PLAN_LIMITS.projects)} پروژه · ${formatPersianNumber(FREE_PLAN_LIMITS.invoices)} فاکتور`}
           </Text>
         </View>
       )}
@@ -128,7 +137,7 @@ export function SubscriptionScreen() {
       {!isPremium && (
         <>
           <Text variant="titleMedium" style={{ fontWeight: '700', textAlign: 'right', marginVertical: 12 }}>
-            انتخاب اشتراک Pro
+            {isInTrial ? 'تمدید اشتراک Pro' : 'انتخاب اشتراک Pro'}
           </Text>
 
           {isBillingSupported && paymentProviderLabel ? (

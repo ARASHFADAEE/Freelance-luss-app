@@ -8,6 +8,9 @@ export const WEB_APP_URL = (process.env.EXPO_PUBLIC_WEB_APP_URL ?? '').replace(/
 
 export const IS_API_CONFIGURED = API_BASE_URL.length > 0;
 
+export const IS_PRODUCTION =
+  process.env.EXPO_PUBLIC_APP_ENV === 'production' || process.env.NODE_ENV === 'production';
+
 export function getAppPlatform(): 'android' | 'ios' | 'web' {
   if (Platform.OS === 'web') return 'web';
   if (Platform.OS === 'android') return 'android';

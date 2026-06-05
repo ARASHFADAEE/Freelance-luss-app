@@ -1,6 +1,8 @@
 import React, { useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
+import { useNavigation } from '@react-navigation/native';
+import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/core/theme/useAppTheme';
 import { useQuery } from '@tanstack/react-query';
@@ -14,15 +16,18 @@ import { PeriodToggle } from '@/shared/components/PeriodToggle';
 import { ReportListCard } from '@/shared/components/ReportListCard';
 import { JalaliDateField } from '@/shared/components/JalaliDateField';
 import { useResponsive } from '@/core/hooks/useResponsive';
+import type { RootTabParamList } from '@/navigation/types';
 
 type PeriodFilter = 'monthly' | 'yearly' | 'custom';
 
 export function ReportsScreen() {
   const theme = useAppTheme();
+  const navigation = useNavigation<BottomTabNavigationProp<RootTabParamList>>();
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsive();
   const currency = useProfileStore((s) => s.profile?.currency ?? 'TOMAN');
-  const isPro = useSubscriptionStore((s) => s.plan === 'pro');
+  const hasProFeatures = useSubscriptionStore((s) => s.hasProFeatures);
+  const isInTrial = useSubscriptionStore((s) => s.isInTrial);
   const [period, setPeriod] = useState<PeriodFilter>('monthly');
   const [fromDate, setFromDate] = useState(addDaysISO(todayISO(), -90));
   const [toDate, setToDate] = useState(todayISO());
@@ -30,13 +35,13 @@ export function ReportsScreen() {
   const { data: clientReports = [] } = useQuery({
     queryKey: ['client-reports'],
     queryFn: () => analyticsRepository.getClientReports(),
-    enabled: isPro,
+    enabled: hasProFeatures(),
   });
 
   const { data: serviceReports = [] } = useQuery({
     queryKey: ['service-reports'],
     queryFn: () => analyticsRepository.getServiceReports(),
-    enabled: isPro,
+    enabled: hasProFeatures(),
   });
 
   const { data: presetChart = [] } = useQuery({
@@ -45,13 +50,13 @@ export function ReportsScreen() {
       period === 'monthly'
         ? analyticsRepository.getMonthlyData(12)
         : analyticsRepository.getYearlyData(5),
-    enabled: isPro && period !== 'custom',
+    enabled: hasProFeatures() && period !== 'custom',
   });
 
   const { data: rangeData } = useQuery({
     queryKey: ['report-range', fromDate, toDate],
     queryFn: () => analyticsRepository.getRangeData(fromDate, toDate),
-    enabled: isPro && period === 'custom',
+    enabled: hasProFeatures() && period === 'custom',
   });
 
   const { data: expenseBreakdown = [] } = useQuery({
@@ -60,7 +65,7 @@ export function ReportsScreen() {
       period === 'custom'
         ? analyticsRepository.getExpenseBreakdownInRange(fromDate, toDate)
         : analyticsRepository.getExpenseBreakdown(),
-    enabled: isPro,
+    enabled: hasProFeatures(),
   });
 
   const chartSource = period === 'custom' ? (rangeData?.chart ?? []) : presetChart;
@@ -77,10 +82,22 @@ export function ReportsScreen() {
     expenses: m.expenses / 1_000_000,
   })), [chartSource, period]);
 
-  if (!isPro) {
+  if (!hasProFeatures()) {
     return (
       <View style={[styles.locked, { backgroundColor: theme.colors.background }]}>
-        <Text variant="titleMedium" style={{ textAlign: 'center' }}>گزارش‌های پیشرفته فقط در پلن Pro</Text>
+        <Text variant="titleMedium" style={{ textAlign: 'center' }}>گزارش‌های پیشرفته نیاز به Pro دارند</Text>
+        <Text variant="bodyMedium" style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant, marginTop: 8, lineHeight: 22 }}>
+          {isInTrial()
+            ? 'دوره آزمایشی شما تمام شده است.'
+            : '۳ روز اول رایگان است — سپس اشتراک Pro لازم است.'}
+        </Text>
+        <Button
+          mode="contained"
+          style={{ marginTop: 16 }}
+          onPress={() => navigation.navigate('More', { screen: 'Subscription' })}
+        >
+          خرید اشتراک Pro
+        </Button>
       </View>
     );
   }

@@ -69,6 +69,9 @@ export const FREE_PLAN_LIMITS = {
   invoices: 10,
 } as const;
 
+/** روزهای دسترسی رایگان به امکانات Pro (گزارش، PDF، ...) */
+export const TRIAL_DAYS = 3;
+
 export const PRO_PLAN_PRICE = 690_000;
 
 export const SERVICE_CATEGORIES = [

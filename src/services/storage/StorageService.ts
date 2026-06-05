@@ -12,6 +12,9 @@ export const StorageKeys = {
   LAST_VALIDATION_AT: 'fp_last_validation_at',
   USER_PHONE: 'fp_user_phone',
   USER_ID: 'fp_user_id',
+  USER_NAME: 'fp_user_name',
+  TRIAL_STARTED_AT: 'fp_trial_started_at',
+  TRIAL_USER_ID: 'fp_trial_user_id',
 } as const;
 
 type StorageKey = (typeof StorageKeys)[keyof typeof StorageKeys];
@@ -20,6 +23,10 @@ const memoryFallback = new Map<string, string>();
 
 async function setItem(key: StorageKey, value: string): Promise<void> {
   if (Platform.OS === 'web') {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(key, value);
+      return;
+    }
     memoryFallback.set(key, value);
     return;
   }
@@ -30,6 +37,9 @@ async function setItem(key: StorageKey, value: string): Promise<void> {
 
 async function getItem(key: StorageKey): Promise<string | null> {
   if (Platform.OS === 'web') {
+    if (typeof localStorage !== 'undefined') {
+      return localStorage.getItem(key);
+    }
     return memoryFallback.get(key) ?? null;
   }
   return SecureStore.getItemAsync(key);
@@ -37,6 +47,10 @@ async function getItem(key: StorageKey): Promise<string | null> {
 
 async function deleteItem(key: StorageKey): Promise<void> {
   if (Platform.OS === 'web') {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(key);
+      return;
+    }
     memoryFallback.delete(key);
     return;
   }
@@ -67,6 +81,7 @@ export const storageService = {
       deleteItem(StorageKeys.REFRESH_TOKEN),
       deleteItem(StorageKeys.USER_PHONE),
       deleteItem(StorageKeys.USER_ID),
+      deleteItem(StorageKeys.USER_NAME),
     ]);
   },
 

@@ -5,6 +5,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { maskPhone, normalizeOtpCode } from '@/services/auth/OtpService';
+import { IS_PRODUCTION } from '@/core/config/env';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { FormTextInput } from '@/shared/components/FormTextInput';
 import { useAuth } from '@/hooks/useAuth';
@@ -60,7 +61,7 @@ export function OtpScreen() {
         کد ارسال‌شده به {maskPhone(phone)} را وارد کنید
       </Text>
 
-      {__DEV__ && debugCode ? (
+      {!IS_PRODUCTION && debugCode ? (
         <Text variant="labelMedium" style={styles.debug}>کد تست: {debugCode}</Text>
       ) : null}
 

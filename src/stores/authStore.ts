@@ -1,9 +1,11 @@
 import { create } from 'zustand';
 import { IS_API_CONFIGURED } from '@/core/config/env';
-import type { AuthUser, SubscriptionPayload } from '@/services/api/types';
+import type { AuthUser } from '@/services/api/types';
 import { authService } from '@/services/auth/AuthService';
-import { storageService, StorageKeys } from '@/services/storage/StorageService';
+import { syncAuthUserToProfile } from '@/services/auth/syncAuthProfile';
+import { storageService } from '@/services/storage/StorageService';
 import { subscriptionSyncService } from '@/services/subscription/SubscriptionSyncService';
+import { trialService } from '@/services/subscription/trialService';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 
 interface AuthState {
@@ -18,6 +20,14 @@ interface AuthState {
   refreshSession: () => Promise<void>;
 }
 
+async function applyAuthenticatedUser(user: AuthUser, withSubscriptionFromApi = true): Promise<void> {
+  await trialService.startTrialIfNeeded(user.id);
+  await syncAuthUserToProfile(user);
+  if (withSubscriptionFromApi) {
+    await useSubscriptionStore.getState().load();
+  }
+}
+
 export const useAuthStore = create<AuthState>((set, get) => ({
   isReady: false,
   isAuthenticated: false,
@@ -26,38 +36,45 @@ export const useAuthStore = create<AuthState>((set, get) => ({
 
   initialize: async () => {
     try {
-      const token = await storageService.getAccessToken();
-      const phone = await storageService.getItem(StorageKeys.USER_PHONE);
-      const userId = await storageService.getItem(StorageKeys.USER_ID);
-
-      if (token && IS_API_CONFIGURED) {
-        try {
-          const me = await authService.fetchMe();
-          await subscriptionSyncService.applyFromMe(me.subscription);
-          await useSubscriptionStore.getState().load();
-          set({
-            isAuthenticated: true,
-            user: me.user,
-            phone: me.user.phone,
-            isReady: true,
-          });
-          return;
-        } catch {
-          await authService.logout();
-        }
-      } else if (token && phone && userId) {
-        set({
-          isAuthenticated: true,
-          user: { id: userId, phone, fullName: null },
-          phone,
-          isReady: true,
-        });
-        await subscriptionSyncService.syncOnLaunch();
-        await useSubscriptionStore.getState().load();
+      if (!IS_API_CONFIGURED) {
+        set({ isAuthenticated: false, user: null, phone: null, isReady: true });
         return;
       }
 
-      set({ isAuthenticated: false, user: null, phone: null, isReady: true });
+      const token = await storageService.getAccessToken();
+      if (!token) {
+        set({ isAuthenticated: false, user: null, phone: null, isReady: true });
+        return;
+      }
+
+      try {
+        const me = await authService.fetchMe();
+        await subscriptionSyncService.applyFromMe(me.subscription);
+        await applyAuthenticatedUser(me.user);
+        set({
+          isAuthenticated: true,
+          user: me.user,
+          phone: me.user.phone,
+          isReady: true,
+        });
+        return;
+      } catch {
+        const cached = await authService.restoreUserFromStorage();
+        if (cached) {
+          await subscriptionSyncService.syncOnLaunch();
+          await applyAuthenticatedUser(cached.user, false);
+          set({
+            isAuthenticated: true,
+            user: cached.user,
+            phone: cached.user.phone,
+            isReady: true,
+          });
+          return;
+        }
+
+        await authService.logout();
+        set({ isAuthenticated: false, user: null, phone: null, isReady: true });
+      }
     } catch {
       set({ isAuthenticated: false, user: null, phone: null, isReady: true });
     }
@@ -72,22 +89,33 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   verifyOtp: async (phone, code) => {
     const res = await authService.verifyOtp(phone, code);
     await subscriptionSyncService.applyFromMe(res.subscription);
-    await useSubscriptionStore.getState().load();
+    await applyAuthenticatedUser(res.user);
     set({ isAuthenticated: true, user: res.user, phone: res.user.phone });
   },
 
   logout: async () => {
-    await authService.logout();
-    await storageService.clearSubscriptionMeta();
-    await useSubscriptionStore.getState().load();
-    set({ isAuthenticated: false, user: null, phone: null });
+    try {
+      await authService.logout();
+    } finally {
+      await storageService.clearSubscriptionMeta();
+      await useSubscriptionStore.getState().load();
+      set({ isAuthenticated: false, user: null, phone: null, isReady: true });
+    }
   },
 
   refreshSession: async () => {
     if (!get().isAuthenticated) return;
-    const me = await authService.fetchMe();
-    await subscriptionSyncService.applyFromMe(me.subscription);
-    await useSubscriptionStore.getState().load();
-    set({ user: me.user, phone: me.user.phone });
+    try {
+      const me = await authService.fetchMe();
+      await subscriptionSyncService.applyFromMe(me.subscription);
+      await applyAuthenticatedUser(me.user);
+      set({ user: me.user, phone: me.user.phone });
+    } catch {
+      const cached = await authService.restoreUserFromStorage();
+      if (cached) {
+        await syncAuthUserToProfile(cached.user);
+        set({ user: cached.user, phone: cached.user.phone });
+      }
+    }
   },
 }));
