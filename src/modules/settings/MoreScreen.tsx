@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Snackbar, Text } from 'react-native-paper';
+import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -25,21 +25,7 @@ export function MoreScreen() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
-  const { plan, upgradeToPro } = useSubscriptionStore();
-  const [loading, setLoading] = useState(false);
-  const [snack, setSnack] = useState('');
-
-  const handleQuickUpgrade = async () => {
-    setLoading(true);
-    try {
-      await upgradeToPro();
-      setSnack('Pro فعال شد!');
-    } catch {
-      setSnack('خطا در فعال‌سازی');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const plan = useSubscriptionStore((s) => s.plan);
 
   return (
     <ScreenContainer>
@@ -47,11 +33,14 @@ export function MoreScreen() {
         <Text variant="titleLarge" style={styles.title}>بیشتر</Text>
 
         {plan === 'free' && (
-          <Pressable onPress={handleQuickUpgrade} disabled={loading} style={[styles.proBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary }]}>
+          <Pressable
+            onPress={() => navigation.navigate('Subscription')}
+            style={[styles.proBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary }]}
+          >
             <MaterialCommunityIcons name="crown" size={24} color={theme.colors.primary} />
             <View style={{ flex: 1, alignItems: 'flex-end' }}>
-              <Text variant="bodyLarge" style={{ fontWeight: '600' }}>{loading ? 'در حال فعال‌سازی...' : 'ارتقا به Pro'}</Text>
-              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>نامحدود + PDF + گزارش</Text>
+              <Text variant="bodyLarge" style={{ fontWeight: '600' }}>ارتقا به Pro</Text>
+              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>خرید از کافه‌بازار</Text>
             </View>
           </Pressable>
         )}
@@ -71,7 +60,6 @@ export function MoreScreen() {
           </Pressable>
         ))}
       </View>
-      <Snackbar visible={!!snack} onDismiss={() => setSnack('')}>{snack}</Snackbar>
     </ScreenContainer>
   );
 }

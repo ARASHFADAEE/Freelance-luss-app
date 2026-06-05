@@ -1,6 +1,11 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 
+export type AuthStackParamList = {
+  Login: undefined;
+  Otp: { phone: string; expiresIn: number; debugCode?: string };
+};
+
 export type ClientsStackParamList = {
   ClientsList: undefined;
   ClientForm: { clientId?: string };

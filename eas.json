@@ -13,6 +13,10 @@
     "production": {
       "android": {
         "buildType": "app-bundle"
+      },
+      "env": {
+        "EXPO_PUBLIC_API_URL": "",
+        "EXPO_PUBLIC_BAZAAR_RSA_KEY": ""
       }
     }
   }

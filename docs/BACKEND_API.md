@@ -2,6 +2,24 @@
 
 این سند برای تیم بک‌اند است تا **ورود با OTP** و **سیستم اشتراک Pro** را پیاده‌سازی و به اپ موبایل متصل کنند.
 
+> **پیاده‌سازی Laravel:** جزئیات migration، SMS.ir و Cafe Bazaar در [`LARAVEL_BACKEND.md`](./LARAVEL_BACKEND.md)  
+> **انتشار کافه‌بازار:** [`CAFE_BAZAAR_RELEASE.md`](./CAFE_BAZAAR_RELEASE.md)
+
+### مسیرهای API در اپ موبایل (Production)
+
+| عملیات | مسیر (فعلی اپ) | مسیر قدیمی در این سند |
+|--------|----------------|------------------------|
+| ارسال OTP | `POST /api/auth/send-otp` | `/api/v1/auth/otp/send` |
+| تأیید OTP | `POST /api/auth/verify-otp` | `/api/v1/auth/otp/verify` |
+| تازه‌سازی | `POST /api/auth/refresh` | `/api/v1/auth/refresh` |
+| خروج | `POST /api/auth/logout` | `/api/v1/auth/logout` |
+| پروفایل | `GET /api/auth/me` | — |
+| تأیید خرید بازار | `POST /api/subscriptions/verify` | — |
+| checkout زیبال (وب) | `POST /api/subscriptions/checkout` | `/api/v1/subscription/checkout` |
+| وضعیت سفارش زیبال | `GET /api/subscriptions/checkout/{orderId}` | — |
+
+بک‌اند باید مسیرهای **ستون وسط** را پیاده کند.
+
 ---
 
 ## ۱. نمای کلی
@@ -217,7 +235,65 @@ Authorization: Bearer {accessToken}
 
 ---
 
-### ۴.۳ ایجاد سفارش پرداخت (درگاه)
+### ۴.۳ ایجاد سفارش پرداخت — زیبال (وب)
+
+```http
+POST /api/subscriptions/checkout
+Authorization: Bearer {accessToken}
+Content-Type: application/json
+```
+
+**Request:**
+```json
+{
+  "product_id": "freelancerpro_pro_yearly",
+  "platform": "zibal",
+  "callback_url": "https://app.example.com/"
+}
+```
+
+**Response 200:**
+```json
+{
+  "orderId": "ord_xyz",
+  "paymentUrl": "https://gateway.zibal.ir/start/...",
+  "amount": 690000,
+  "currency": "IRT"
+}
+```
+
+**جریان:**
+1. اپ وب کاربر را به `paymentUrl` هدایت می‌کند
+2. پس از پرداخت، زیبال به callback سرور Laravel می‌زند
+3. سرور پرداخت را verify می‌کند و کاربر را به `{callback_url}?subscription=success&order_id=ord_xyz` برمی‌گرداند
+4. اپ وب با `GET /api/subscriptions/checkout/{orderId}` وضعیت را تأیید و Premium فعال می‌کند
+
+---
+
+### ۴.۴ وضعیت سفارش (بعد از بازگشت از زیبال)
+
+```http
+GET /api/subscriptions/checkout/{orderId}
+Authorization: Bearer {accessToken}
+```
+
+**Response 200 (paid):**
+```json
+{
+  "orderId": "ord_xyz",
+  "status": "paid",
+  "subscription": {
+    "active": true,
+    "expires_at": "2027-06-05T00:00:00Z",
+    "subscription_type": "pro_yearly",
+    "user_access": "premium"
+  }
+}
+```
+
+---
+
+### ۴.۵ ایجاد سفارش پرداخت (درگاه — مسیر قدیمی)
 
 ```http
 POST /api/v1/subscription/checkout
@@ -245,7 +321,7 @@ Content-Type: application/json
 
 ---
 
-### ۴.۴ Webhook پرداخت موفق (سرور به سرور)
+### ۴.۶ Webhook پرداخت موفق (سرور به سرور)
 
 ```http
 POST /api/v1/webhooks/payment

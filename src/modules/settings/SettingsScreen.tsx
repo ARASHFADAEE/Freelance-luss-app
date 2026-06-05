@@ -1,10 +1,12 @@
 import React from 'react';
-import { StyleSheet } from 'react-native';
-import { List, Switch, Text, useTheme } from 'react-native-paper';
+import { Alert, StyleSheet } from 'react-native';
+import { Button, List, Switch, Text, useTheme } from 'react-native-paper';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { IS_API_CONFIGURED } from '@/core/config/env';
 import type { MoreStackParamList } from '@/navigation/types';
 import { useThemeStore } from '@/stores/themeStore';
+import { useAuth } from '@/hooks/useAuth';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 
 const listTitleStyle = { textAlign: 'right' as const, writingDirection: 'rtl' as const };
@@ -14,6 +16,14 @@ export function SettingsScreen() {
   const theme = useTheme();
   const navigation = useNavigation<NativeStackNavigationProp<MoreStackParamList>>();
   const { isDark, toggle } = useThemeStore();
+  const { isAuthenticated, user, logout } = useAuth();
+
+  const handleLogout = () => {
+    Alert.alert('خروج از حساب', 'آیا مطمئن هستید؟', [
+      { text: 'انصراف', style: 'cancel' },
+      { text: 'خروج', style: 'destructive', onPress: () => logout() },
+    ]);
+  };
 
   return (
     <ScreenContainer>
@@ -51,7 +61,22 @@ export function SettingsScreen() {
           descriptionStyle={listDescStyle}
           right={() => <List.Icon icon="information-outline" />}
         />
+        {IS_API_CONFIGURED && isAuthenticated && (
+          <List.Item
+            title="حساب کاربری"
+            description={user?.phone ?? '—'}
+            titleStyle={listTitleStyle}
+            descriptionStyle={listDescStyle}
+            right={() => <List.Icon icon="account" />}
+          />
+        )}
       </List.Section>
+
+      {IS_API_CONFIGURED && isAuthenticated && (
+        <Button mode="outlined" onPress={handleLogout} style={{ marginTop: 8 }}>
+          خروج از حساب
+        </Button>
+      )}
     </ScreenContainer>
   );
 }
