@@ -6,6 +6,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { clientRepository, invoiceRepository, serviceRepository } from '@/database';
 import type { InvoicesStackParamList } from '@/navigation/types';
+import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
 import { todayISO, addDaysISO } from '@/core/utils/persian';
 import { formatCurrency } from '@/core/utils/currency';
 import { useProfileStore } from '@/stores/profileStore';
@@ -93,7 +94,7 @@ export function InvoiceFormScreen() {
   });
 
   return (
-    <ScrollView contentContainerStyle={styles.content} style={{ direction: 'rtl' }}>
+    <ScrollView contentContainerStyle={styles.content} style={rtlLayoutStyle}>
       <ClientPickerField
         clients={clients}
         value={clientId}

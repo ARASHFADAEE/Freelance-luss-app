@@ -26,10 +26,7 @@ export function PeriodToggle<T extends string>({ options, value, onChange }: Pro
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
-            style={[
-              styles.btn,
-              active && { backgroundColor: theme.colors.primary, shadowColor: theme.colors.primary },
-            ]}
+            style={[styles.btn, active && { backgroundColor: theme.colors.primary }]}
           >
             <MaterialCommunityIcons
               name={opt.icon}

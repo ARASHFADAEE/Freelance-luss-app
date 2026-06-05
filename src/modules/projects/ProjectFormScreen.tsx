@@ -15,6 +15,7 @@ import type { ProjectsStackParamList } from '@/navigation/types';
 import { todayISO } from '@/core/utils/persian';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { JalaliDateField } from '@/shared/components/JalaliDateField';
+import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
 import { CurrencyInput } from '@/shared/components/CurrencyInput';
 
 const schema = z.object({
@@ -152,7 +153,7 @@ export function ProjectFormScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, direction: 'rtl' },
+  container: { flex: 1, ...rtlLayoutStyle },
   content: { padding: 16, gap: 8, paddingBottom: 32 },
   input: { backgroundColor: 'transparent' },
   menuBtn: { alignSelf: 'stretch' },

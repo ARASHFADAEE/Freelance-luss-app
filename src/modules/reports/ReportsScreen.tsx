@@ -15,6 +15,7 @@ import { SimpleBarChart } from '@/shared/components/SimpleBarChart';
 import { PeriodToggle } from '@/shared/components/PeriodToggle';
 import { ReportListCard } from '@/shared/components/ReportListCard';
 import { JalaliDateField } from '@/shared/components/JalaliDateField';
+import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
 import { useResponsive } from '@/core/hooks/useResponsive';
 import type { RootTabParamList } from '@/navigation/types';
 
@@ -104,7 +105,7 @@ export function ReportsScreen() {
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: theme.colors.background, direction: 'rtl' }}
+      style={{ flex: 1, backgroundColor: theme.colors.background, ...rtlLayoutStyle }}
       contentContainerStyle={[styles.content, { paddingTop: insets.top + 12 }]}
     >
       <Text variant="titleLarge" style={styles.title}>گزارش درآمد</Text>

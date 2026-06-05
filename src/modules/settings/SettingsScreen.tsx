@@ -11,6 +11,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { StorageModeSettingsSection } from '@/modules/settings/StorageModeSettingsSection';
 
+import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
 const listTitleStyle = { textAlign: 'right' as const, writingDirection: 'rtl' as const };
 const listDescStyle = { textAlign: 'right' as const, writingDirection: 'rtl' as const };
 
@@ -82,5 +83,5 @@ export function SettingsScreen() {
 }
 
 const styles = StyleSheet.create({
-  section: { direction: 'rtl' },
+  section: rtlLayoutStyle,
 });

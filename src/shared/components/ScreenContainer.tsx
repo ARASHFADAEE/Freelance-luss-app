@@ -1,6 +1,7 @@
 import React from 'react';
 import { ScrollView, StyleSheet, View, ViewStyle } from 'react-native';
 import { useTheme } from 'react-native-paper';
+import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
 
 interface Props {
   children: React.ReactNode;
@@ -13,13 +14,13 @@ export function ScreenContainer({ children, scrollable = true, style, padded = t
   const theme = useTheme();
 
   const content = (
-    <View style={[padded && styles.padded, styles.rtl, style]}>{children}</View>
+    <View style={[padded && styles.padded, rtlLayoutStyle, style]}>{children}</View>
   );
 
   if (scrollable) {
     return (
       <ScrollView
-        style={[styles.container, styles.rtl, { backgroundColor: theme.colors.background }]}
+        style={[styles.container, rtlLayoutStyle, { backgroundColor: theme.colors.background }]}
         contentContainerStyle={{ paddingBottom: 24 }}
         showsVerticalScrollIndicator={false}
       >
@@ -29,7 +30,7 @@ export function ScreenContainer({ children, scrollable = true, style, padded = t
   }
 
   return (
-    <View style={[styles.container, styles.rtl, { backgroundColor: theme.colors.background }, style]}>
+    <View style={[styles.container, rtlLayoutStyle, { backgroundColor: theme.colors.background }, style]}>
       {content}
     </View>
   );
@@ -38,5 +39,4 @@ export function ScreenContainer({ children, scrollable = true, style, padded = t
 const styles = StyleSheet.create({
   container: { flex: 1 },
   padded: { paddingHorizontal: 16, paddingTop: 12 },
-  rtl: { direction: 'rtl' },
 });

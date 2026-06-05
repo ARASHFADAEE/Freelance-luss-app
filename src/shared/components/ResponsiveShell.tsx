@@ -32,10 +32,15 @@ const styles = StyleSheet.create({
     borderLeftWidth: StyleSheet.hairlineWidth,
     borderRightWidth: StyleSheet.hairlineWidth,
     borderColor: '#cbd5e1',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 4,
+    ...Platform.select({
+      web: { boxShadow: '0 0 24px rgba(0, 0, 0, 0.08)' },
+      default: {
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 0 },
+        shadowOpacity: 0.08,
+        shadowRadius: 24,
+        elevation: 4,
+      },
+    }),
   },
 });
