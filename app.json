@@ -1,0 +1,49 @@
+{
+  "expo": {
+    "name": "فریلنس پلاس",
+    "slug": "freelancerpro",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "scheme": "freelancerpro",
+    "plugins": [
+      "expo-sqlite",
+      "expo-font",
+      "expo-sharing",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/icon.png",
+          "color": "#1e3a8a"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "برای انتخاب لوگو به دسترسی گالری نیاز داریم."
+        }
+      ]
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.freelancerpro.app"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1e3a8a",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "package": "com.freelancerpro.app",
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "supportsRTL": true
+    }
+  }
+}
