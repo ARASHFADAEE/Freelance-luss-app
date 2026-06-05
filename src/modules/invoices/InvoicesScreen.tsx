@@ -5,9 +5,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { clientRepository, invoiceRepository } from '@/database';
+import { clientRepository, invoiceRepository, projectRepository } from '@/database';
 import { formatCurrency } from '@/core/utils/currency';
 import { formatJalaliDate } from '@/core/utils/persian';
+import { isInvoicePaid } from '@/core/utils/invoice';
 import type { Invoice } from '@/core/types';
 import type { InvoicesStackParamList } from '@/navigation/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
@@ -23,10 +24,6 @@ type InvoiceFilter = 'all' | 'paid' | 'unpaid';
 const STATUS: Record<string, string> = {
   draft: 'پیش‌نویس', sent: 'ارسال‌شده', paid: 'پرداخت شده', overdue: 'سررسید گذشته', cancelled: 'لغو شده',
 };
-
-function isInvoicePaid(invoice: Invoice): boolean {
-  return invoice.status === 'paid';
-}
 
 export function InvoicesScreen() {
   const theme = useTheme();
@@ -46,13 +43,22 @@ export function InvoicesScreen() {
     queryFn: () => clientRepository.getAll(),
   });
 
+  const { data: projects = [] } = useQuery({
+    queryKey: ['projects'],
+    queryFn: () => projectRepository.getAll(),
+  });
+
   const clientMap = useMemo(() => new Map(clients.map((c) => [c.id, c.fullName])), [clients]);
+  const projectMap = useMemo(() => new Map(projects.map((p) => [p.id, p])), [projects]);
+
+  const checkPaid = (invoice: Invoice) =>
+    isInvoicePaid(invoice, invoice.projectId ? projectMap.get(invoice.projectId) : null);
 
   const filtered = useMemo(() => {
-    if (filter === 'paid') return invoices.filter(isInvoicePaid);
-    if (filter === 'unpaid') return invoices.filter((i) => !isInvoicePaid(i) && i.status !== 'cancelled');
+    if (filter === 'paid') return invoices.filter(checkPaid);
+    if (filter === 'unpaid') return invoices.filter((i) => !checkPaid(i) && i.status !== 'cancelled');
     return invoices;
-  }, [invoices, filter]);
+  }, [invoices, filter, projectMap]);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -84,7 +90,7 @@ export function InvoicesScreen() {
             onRefresh={refetch}
             refreshing={false}
             renderItem={({ item }) => {
-              const paid = isInvoicePaid(item);
+              const paid = checkPaid(item);
               const clientName = clientMap.get(item.clientId) ?? '—';
 
               return (

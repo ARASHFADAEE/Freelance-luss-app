@@ -4,8 +4,20 @@ import { todayISO } from '@/core/utils/persian';
 import { BaseRepository } from './base';
 
 export class InvoiceRepository extends BaseRepository {
+  async syncPaidStatusFromProjects(): Promise<void> {
+    const db = await this.getDb();
+    await db.runAsync(
+      `UPDATE invoices SET status = 'paid'
+       WHERE status NOT IN ('cancelled', 'paid')
+         AND projectId IN (
+           SELECT id FROM projects WHERE totalAmount > 0 AND remainingAmount <= 0
+         )`,
+    );
+  }
+
   async getAll(): Promise<Invoice[]> {
     const db = await this.getDb();
+    await this.syncPaidStatusFromProjects();
     return db.getAllAsync<Invoice>('SELECT * FROM invoices ORDER BY createdAt DESC');
   }
 
@@ -112,9 +124,21 @@ export class InvoiceRepository extends BaseRepository {
   async countUnpaid(): Promise<number> {
     const db = await this.getDb();
     const row = await db.getFirstAsync<{ count: number }>(
-      `SELECT COUNT(*) as count FROM invoices WHERE status IN ('draft', 'sent', 'overdue')`,
+      `SELECT COUNT(*) as count FROM invoices i
+       LEFT JOIN projects p ON p.id = i.projectId
+       WHERE i.status IN ('draft', 'sent', 'overdue')
+         AND NOT (p.totalAmount > 0 AND p.remainingAmount <= 0)`,
     );
     return row?.count ?? 0;
+  }
+
+  async markPaidByProjectId(projectId: string): Promise<void> {
+    const db = await this.getDb();
+    await db.runAsync(
+      `UPDATE invoices SET status = 'paid'
+       WHERE projectId = ? AND status NOT IN ('cancelled', 'paid')`,
+      projectId,
+    );
   }
 }
 

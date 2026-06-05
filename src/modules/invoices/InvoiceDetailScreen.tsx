@@ -38,8 +38,8 @@ export function InvoiceDetailScreen() {
       const prof = profile ?? await profileRepository.get();
       const uri = await generateInvoicePdf({ ...renderData, profile: prof });
       await shareInvoiceFile(uri, 'application/pdf', 'اشتراک فاکتور PDF');
-    } catch {
-      setSnack('خطا در تولید PDF');
+    } catch (e) {
+      setSnack(e instanceof Error ? e.message : 'خطا در تولید PDF');
     } finally {
       setExporting(false);
     }
@@ -62,8 +62,8 @@ export function InvoiceDetailScreen() {
 
       const uri = await generateInvoicePng(data, captureNative);
       await shareInvoiceFile(uri, 'image/png', 'اشتراک تصویر فاکتور');
-    } catch {
-      setSnack('خطا در تولید تصویر');
+    } catch (e) {
+      setSnack(e instanceof Error ? e.message : 'خطا در تولید تصویر');
       setShowExportModal(false);
     } finally {
       setExporting(false);

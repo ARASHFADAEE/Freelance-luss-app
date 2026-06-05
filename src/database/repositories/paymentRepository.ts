@@ -1,6 +1,7 @@
 import type { Payment } from '@/core/types';
 import { generateId } from '@/core/utils/id';
 import { todayISO } from '@/core/utils/persian';
+import { invoiceRepository } from './invoiceRepository';
 import { projectRepository } from './projectRepository';
 import { BaseRepository } from './base';
 
@@ -50,6 +51,7 @@ export class PaymentRepository extends BaseRepository {
 
     if (settled) {
       await projectRepository.update(data.projectId, { status: 'completed' });
+      await invoiceRepository.markPaidByProjectId(data.projectId);
     }
 
     return { payment, settled, remainingAmount };
