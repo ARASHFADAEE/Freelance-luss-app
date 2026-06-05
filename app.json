@@ -37,13 +37,19 @@
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
       "package": "com.freelancerpro.app",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "permissions": [
+        "android.permission.RECORD_AUDIO"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
-      "supportsRTL": true
+      "supportsRTL": true,
+      "eas": {
+        "projectId": "ae0820f1-2cad-4a96-b6e7-5c82eae760ce"
+      }
     }
   }
 }

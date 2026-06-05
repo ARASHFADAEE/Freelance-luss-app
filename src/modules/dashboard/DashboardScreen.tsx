@@ -63,8 +63,8 @@ export function DashboardScreen() {
 
       {isPro && chartData.length > 0 && (
         <View style={[styles.chartBox, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-          <Text variant="labelLarge" style={{ textAlign: 'right', marginBottom: 4, fontWeight: '600' }}>۶ ماه اخیر</Text>
-          <Text variant="labelSmall" style={{ textAlign: 'right', color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>میلیون تومان</Text>
+          <Text variant="labelLarge" style={{ textAlign: 'right', marginBottom: 4, fontWeight: '600' }}> نمودار ۶ ماه اخیر</Text>
+          <Text variant="labelSmall" style={{ textAlign: 'right', color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>بر اساس میلیون تومان</Text>
           <SimpleBarChart
             data={chartData}
             height={300}

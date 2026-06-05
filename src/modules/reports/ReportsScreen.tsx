@@ -80,7 +80,7 @@ export function ReportsScreen() {
         <View style={[styles.chartBox, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
           <View style={styles.chartHeader}>
             <Text variant="labelLarge" style={{ fontWeight: '600' }}>
-              {period === 'monthly' ? '۱۲ ماه اخیر' : '۵ سال اخیر'}
+              {period === 'monthly' ? 'ماه اخیر ۱۲ ' : '۵ سال اخیر'}
             </Text>
             <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>
               مجموع: {formatCurrency(totalRevenue, currency)}
