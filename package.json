@@ -54,6 +54,8 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
+    "build": "expo export -p web",
+    "preview:web": "npx serve dist",
     "build:apk": "eas build --platform android --profile preview"
   },
   "private": true
