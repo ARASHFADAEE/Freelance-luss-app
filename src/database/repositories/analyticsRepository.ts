@@ -181,6 +181,72 @@ export class AnalyticsRepository extends BaseRepository {
     return rows;
   }
 
+  async getRangeData(startDate: string, endDate: string): Promise<{
+    revenue: number;
+    expenses: number;
+    profit: number;
+    chart: MonthlyDataPoint[];
+  }> {
+    const db = await this.getDb();
+    const payments = await db.getAllAsync<{ amount: number; paymentDate: string }>(
+      'SELECT amount, paymentDate FROM payments WHERE paymentDate >= ? AND paymentDate <= ?',
+      startDate,
+      endDate,
+    );
+    const expenses = await db.getAllAsync<{ amount: number; date: string }>(
+      'SELECT amount, date FROM expenses WHERE date >= ? AND date <= ?',
+      startDate,
+      endDate,
+    );
+
+    const revenue = payments.reduce((s, p) => s + p.amount, 0);
+    const expenseTotal = expenses.reduce((s, e) => s + e.amount, 0);
+
+    const monthMap = new Map<string, MonthlyDataPoint>();
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+    const cursor = new Date(start.getFullYear(), start.getMonth(), 1);
+
+    while (cursor <= end) {
+      const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}`;
+      monthMap.set(key, {
+        month: key,
+        label: formatJalaliMonth(`${key}-01`),
+        revenue: 0,
+        expenses: 0,
+      });
+      cursor.setMonth(cursor.getMonth() + 1);
+    }
+
+    for (const p of payments) {
+      const key = p.paymentDate.substring(0, 7);
+      if (monthMap.has(key)) monthMap.get(key)!.revenue += p.amount;
+    }
+
+    for (const e of expenses) {
+      const key = e.date.substring(0, 7);
+      if (monthMap.has(key)) monthMap.get(key)!.expenses += e.amount;
+    }
+
+    return {
+      revenue,
+      expenses: expenseTotal,
+      profit: revenue - expenseTotal,
+      chart: Array.from(monthMap.values()),
+    };
+  }
+
+  async getExpenseBreakdownInRange(startDate: string, endDate: string): Promise<{ category: string; amount: number }[]> {
+    const db = await this.getDb();
+    return db.getAllAsync<{ category: string; amount: number }>(`
+      SELECT category, SUM(amount) as amount
+      FROM expenses
+      WHERE date >= ? AND date <= ?
+      GROUP BY category
+      ORDER BY amount DESC
+    `, startDate, endDate);
+  }
+
   async getExpenseBreakdown(): Promise<{ category: string; amount: number }[]> {
     const db = await this.getDb();
     return db.getAllAsync<{ category: string; amount: number }>(`

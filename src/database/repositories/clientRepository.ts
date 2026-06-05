@@ -1,7 +1,11 @@
 import type { Client } from '@/core/types';
 import { generateId } from '@/core/utils/id';
-import { todayISO } from '@/core/utils/persian';
+import { todayISO, toLatinDigits } from '@/core/utils/persian';
 import { BaseRepository } from './base';
+
+function normalizeSearchQuery(query: string): string {
+  return toLatinDigits(query).trim().replace(/\s+/g, ' ');
+}
 
 export class ClientRepository extends BaseRepository {
   async getAll(): Promise<Client[]> {
@@ -16,12 +20,26 @@ export class ClientRepository extends BaseRepository {
 
   async search(query: string): Promise<Client[]> {
     const db = await this.getDb();
-    const term = `%${query}%`;
+    const normalized = normalizeSearchQuery(query);
+    if (!normalized) return this.getAll();
+
+    const term = `%${normalized}%`;
+    const exact = normalized;
+    const startsWith = `${normalized}%`;
+
     return db.getAllAsync<Client>(
       `SELECT * FROM clients
-       WHERE fullName LIKE ? OR phone LIKE ? OR email LIKE ? OR companyName LIKE ?
-       ORDER BY createdAt DESC`,
-      term, term, term, term,
+       WHERE fullName LIKE ? OR phone LIKE ? OR email LIKE ? OR companyName LIKE ? OR notes LIKE ?
+       ORDER BY
+         CASE
+           WHEN fullName = ? OR phone = ? THEN 0
+           WHEN fullName LIKE ? OR phone LIKE ? OR companyName LIKE ? THEN 1
+           ELSE 2
+         END,
+         createdAt DESC`,
+      term, term, term, term, term,
+      exact, exact,
+      startsWith, startsWith, startsWith,
     );
   }
 

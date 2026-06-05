@@ -93,3 +93,38 @@ export async function setupAllReminders(): Promise<void> {
   await scheduleInvoiceReminders();
   await scheduleProjectReminders();
 }
+
+export async function sendTestNotification(): Promise<{ ok: boolean; message: string }> {
+  if (Platform.OS === 'web') {
+    if (typeof globalThis.Notification !== 'undefined') {
+      const perm = globalThis.Notification.permission === 'granted'
+        ? 'granted'
+        : await globalThis.Notification.requestPermission();
+      if (perm === 'granted') {
+        new globalThis.Notification('تست یادآوری — فریلنس پلاس', {
+          body: 'اگر این پیام را می‌بینید، اعلان مرورگر فعال است ✓',
+          icon: '/favicon.ico',
+        });
+        return { ok: true, message: 'اعلان تست مرورگر ارسال شد' };
+      }
+      return { ok: false, message: 'مجوز اعلان مرورگر داده نشده' };
+    }
+    return { ok: false, message: 'اعلان در این مرورگر پشتیبانی نمی‌شود' };
+  }
+
+  const granted = await requestNotificationPermissions();
+  if (!granted) {
+    return { ok: false, message: 'مجوز اعلان داده نشده — از تنظیمات گوشی فعال کنید' };
+  }
+
+  await Notifications.scheduleNotificationAsync({
+    content: {
+      title: 'تست یادآوری — فریلنس پلاس',
+      body: 'اگر این پیام را می‌بینید، نوتیفیکیشن فعال است ✓',
+      sound: true,
+    },
+    trigger: { type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL, seconds: 2 },
+  });
+
+  return { ok: true, message: 'اعلان تست تا ۲ ثانیه دیگر نمایش داده می‌شود' };
+}

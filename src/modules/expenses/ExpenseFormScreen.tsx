@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet } from 'react-native';
-import { Button, Menu, Snackbar, TextInput } from 'react-native-paper';
+import { Button, Snackbar } from 'react-native-paper';
 import { useForm, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,6 +14,8 @@ import { todayISO } from '@/core/utils/persian';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { JalaliDateField } from '@/shared/components/JalaliDateField';
 import { CurrencyInput } from '@/shared/components/CurrencyInput';
+import { SelectPickerField } from '@/shared/components/SelectPickerField';
+import { FormTextInput } from '@/shared/components/FormTextInput';
 
 const schema = z.object({
   category: z.string(),
@@ -29,7 +31,6 @@ export function ExpenseFormScreen() {
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const expenseId = route.params?.expenseId;
-  const [categoryMenuVisible, setCategoryMenuVisible] = useState(false);
   const [error, setError] = useState('');
 
   const { data: expense } = useQuery({
@@ -40,7 +41,7 @@ export function ExpenseFormScreen() {
 
   const { control, handleSubmit, reset, setValue, watch } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
-    defaultValues: { category: EXPENSE_CATEGORIES[0], amount: 0, description: '', date: todayISO() },
+    defaultValues: { category: '', amount: 0, description: '', date: todayISO() },
   });
 
   const category = watch('category');
@@ -62,14 +63,17 @@ export function ExpenseFormScreen() {
 
   return (
     <ScreenContainer>
-      <Menu visible={categoryMenuVisible} onDismiss={() => setCategoryMenuVisible(false)} anchor={
-        <Button mode="outlined" onPress={() => setCategoryMenuVisible(true)} style={styles.menuBtn}>{category}</Button>
-      }>
-        {EXPENSE_CATEGORIES.map((c) => <Menu.Item key={c} title={c} onPress={() => { setValue('category', c); setCategoryMenuVisible(false); }} />)}
-      </Menu>
+      <SelectPickerField
+        label="دسته‌بندی هزینه"
+        value={category}
+        options={EXPENSE_CATEGORIES}
+        onChange={(c) => setValue('category', c)}
+        placeholder="مثلاً هاست، دامنه، تبلیغات..."
+        required
+      />
       <CurrencyInput label="مبلغ" value={amount} onChangeValue={(n) => setValue('amount', n)} />
       <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
-        <TextInput label="توضیح" value={value} onChangeText={onChange} mode="outlined" style={styles.input} />
+        <FormTextInput label="توضیح" value={value} onChangeText={onChange} style={styles.input} />
       )} />
       <JalaliDateField label="تاریخ" value={date} onChange={(d) => setValue('date', d)} />
       <Button mode="contained" onPress={handleSubmit((d) => mutation.mutate(d))} loading={mutation.isPending} style={{ marginTop: 12 }}>ذخیره</Button>
@@ -80,5 +84,4 @@ export function ExpenseFormScreen() {
 
 const styles = StyleSheet.create({
   input: { backgroundColor: 'transparent', marginBottom: 8 },
-  menuBtn: { alignSelf: 'stretch', marginBottom: 8 },
 });

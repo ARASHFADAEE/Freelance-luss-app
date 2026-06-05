@@ -4,6 +4,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useTheme } from 'react-native-paper';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useResponsive } from '@/core/hooks/useResponsive';
 import type { RootTabParamList } from './types';
 import { DashboardScreen } from '@/modules/dashboard/DashboardScreen';
 import { ClientsStack } from './stacks/ClientsStack';
@@ -17,7 +18,9 @@ const Tab = createBottomTabNavigator<RootTabParamList>();
 export function RootNavigator() {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
-  const tabHeight = 56 + (Platform.OS === 'ios' ? insets.bottom : 8);
+  const { isDesktop } = useResponsive();
+  const isWebDesktop = Platform.OS === 'web' && isDesktop;
+  const tabHeight = (isWebDesktop ? 64 : 56) + (Platform.OS === 'ios' ? insets.bottom : 8);
 
   return (
     <Tab.Navigator
@@ -27,19 +30,21 @@ export function RootNavigator() {
         tabBarInactiveTintColor: theme.colors.onSurfaceVariant,
         tabBarStyle: {
           height: tabHeight,
-          paddingBottom: Platform.OS === 'ios' ? insets.bottom : 8,
-          paddingTop: 6,
+          paddingBottom: Platform.OS === 'ios' ? insets.bottom : isWebDesktop ? 10 : 8,
+          paddingTop: isWebDesktop ? 8 : 6,
           borderTopWidth: StyleSheet.hairlineWidth,
           borderTopColor: theme.colors.outlineVariant,
           backgroundColor: theme.colors.surface,
           elevation: 0,
+          ...(isWebDesktop ? { maxWidth: 1000, alignSelf: 'center', width: '100%' } : {}),
         },
         tabBarLabelStyle: {
           fontFamily: 'IRANYekanX',
           fontWeight: '500',
-          fontSize: 10,
+          fontSize: isWebDesktop ? 12 : 10,
           marginBottom: 2,
         },
+        tabBarItemStyle: isWebDesktop ? { paddingHorizontal: 4 } : undefined,
       }}
     >
       <Tab.Screen
