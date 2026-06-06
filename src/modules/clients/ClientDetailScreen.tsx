@@ -49,7 +49,7 @@ export function ClientDetailScreen() {
       <View style={styles.actions}>
         <Button mode="outlined" compact onPress={() => navigation.navigate('ClientForm', { clientId: client.id })}>ویرایش</Button>
         <Button mode="contained" compact onPress={() => navigation.navigate('Projects', { screen: 'ProjectForm', params: { clientId: client.id } })}>
-          پروژه جدید
+            افزودن پروژه
         </Button>
       </View>
 

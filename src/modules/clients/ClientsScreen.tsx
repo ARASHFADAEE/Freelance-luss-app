@@ -148,5 +148,5 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     marginBottom: 8,
   },
-  info: { flex: 1, alignItems: 'flex-end', gap: 2 },
+  info: { flex: 1, alignItems: 'flex-start', gap: 2 },
 });

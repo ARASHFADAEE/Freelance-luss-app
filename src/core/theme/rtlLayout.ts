@@ -1,6 +1,6 @@
 import { Platform, ViewStyle } from 'react-native';
 
-/** RN Web از `direction` در StyleSheet پشتیبانی نمی‌کند — RTL از I18nManager و NavigationContainer */
+/** RN Web از `direction` در StyleSheet پشتیبانی نمی‌کند — RTL از document.dir و flex row-reverse */
 export const rtlLayoutStyle: ViewStyle =
   Platform.OS === 'web' ? {} : ({ direction: 'rtl' } as ViewStyle);
 

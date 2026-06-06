@@ -47,7 +47,9 @@
     "web": {
       "favicon": "./assets/favicon.png",
       "bundler": "metro",
-      "output": "single"
+      "output": "single",
+      "lang": "fa",
+      "dir": "rtl"
     },
     "extra": {
       "supportsRTL": true,

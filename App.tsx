@@ -1,12 +1,12 @@
 import React from 'react';
-import { I18nManager } from 'react-native';
+import { I18nManager, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { AppProviders } from '@/shared/providers/AppProviders';
 import { ResponsiveShell } from '@/shared/components/ResponsiveShell';
 import { AppGate } from '@/shared/components/AppGate';
 import { useAuthStore } from '@/stores/authStore';
 
-if (!I18nManager.isRTL) {
+if (Platform.OS !== 'web' && !I18nManager.isRTL) {
   I18nManager.allowRTL(true);
   I18nManager.forceRTL(true);
 }
