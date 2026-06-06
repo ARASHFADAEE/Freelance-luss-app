@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { I18nManager, Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { AppProviders } from '@/shared/providers/AppProviders';
@@ -18,7 +18,7 @@ function AppNavigation() {
   return (
     <NavigationContainer
       key={isReady ? (isAuthenticated ? 'nav-authenticated' : 'nav-guest') : 'nav-loading'}
-      direction={I18nManager.isRTL ? 'rtl' : 'ltr'}
+      direction="rtl"
     >
       <ResponsiveShell>
         <AppGate />
@@ -28,6 +28,15 @@ function AppNavigation() {
 }
 
 export default function App() {
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof document === 'undefined') return;
+    const splash = document.getElementById('app-splash');
+    if (!splash) return;
+    splash.classList.add('hide');
+    const timer = setTimeout(() => splash.remove(), 450);
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <AppProviders>
       <AppNavigation />

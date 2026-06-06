@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
 import { Button, Text } from 'react-native-paper';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { IS_API_CONFIGURED } from '@/core/config/env';
-import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { FormTextInput } from '@/shared/components/FormTextInput';
+import { AppLogo } from '@/shared/components/AppLogo';
 import { useAuth } from '@/hooks/useAuth';
 import type { AuthStackParamList } from '@/navigation/types';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthBackground } from '@/modules/auth/components/AuthBackground';
+import { AuthGlassCard } from '@/modules/auth/components/AuthGlassCard';
+import { AuthModeTabs, type AuthMode } from '@/modules/auth/components/AuthModeTabs';
 
 export function LoginScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<AuthStackParamList>>();
   const { sendOtp } = useAuth();
+  const [mode, setMode] = useState<AuthMode>('login');
   const [phone, setPhone] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -31,49 +34,86 @@ export function LoginScreen() {
   };
 
   return (
-    <ScreenContainer>
-      <View style={styles.hero}>
-        <MaterialCommunityIcons name="shield-account" size={56} color="#1e3a8a" />
-        <Text variant="headlineSmall" style={styles.title}>ورود به فریلنس پلاس</Text>
-        <Text variant="bodyMedium" style={styles.subtitle}>
-          برای استفاده از اپ، با شماره موبایل وارد شوید یا ثبت‌نام کنید.
-          {'\n'}۳ روز اول تمام امکانات Pro رایگان است.
-        </Text>
-      </View>
+    <AuthBackground>
+      <KeyboardAvoidingView
+        style={styles.flex}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <View style={styles.center}>
+          <AuthGlassCard style={styles.card}>
+            <View style={styles.logoRow}>
+              <AppLogo size={72} />
+            </View>
 
-      {!IS_API_CONFIGURED && (
-        <View style={styles.warnBox}>
-          <Text variant="bodySmall" style={{ textAlign: 'right', lineHeight: 22 }}>
-            آدرس API تنظیم نشده است.{'\n'}
-            فایل <Text style={{ fontWeight: '700' }}>.env</Text> را بسازید و مقدار{' '}
-            <Text style={{ fontWeight: '700' }}>EXPO_PUBLIC_API_URL</Text> را قرار دهید.
-          </Text>
+            <AuthModeTabs mode={mode} onChange={setMode} />
+
+            {!IS_API_CONFIGURED && (
+              <View style={styles.warnBox}>
+                <Text variant="bodySmall" style={styles.warnText}>
+                  آدرس API تنظیم نشده است. فایل .env را بسازید.
+                </Text>
+              </View>
+            )}
+
+            <FormTextInput
+              label="شماره موبایل"
+              value={phone}
+              onChangeText={setPhone}
+              keyboardType="phone-pad"
+              placeholder="09121234567"
+              style={styles.input}
+              outlineColor="rgba(255, 255, 255, 0.35)"
+              activeOutlineColor="#1e3a8a"
+              textColor="#0f172a"
+            />
+
+            {error ? <Text variant="bodySmall" style={styles.error}>{error}</Text> : null}
+
+            <Button
+              mode="contained"
+              onPress={handleContinue}
+              loading={loading}
+              disabled={!IS_API_CONFIGURED || !phone.trim()}
+              buttonColor="#1e3a8a"
+              textColor="#fff"
+              style={styles.button}
+              contentStyle={styles.buttonContent}
+            >
+              {mode === 'login' ? 'دریافت کد ورود' : 'دریافت کد ثبت‌نام'}
+            </Button>
+          </AuthGlassCard>
         </View>
-      )}
-
-      <FormTextInput
-        label="شماره موبایل"
-        value={phone}
-        onChangeText={setPhone}
-        keyboardType="phone-pad"
-        placeholder="09121234567"
-        style={styles.input}
-      />
-
-      {error ? <Text variant="bodySmall" style={styles.error}>{error}</Text> : null}
-
-      <Button mode="contained" onPress={handleContinue} loading={loading} disabled={!IS_API_CONFIGURED || !phone.trim()}>
-        دریافت کد تأیید
-      </Button>
-    </ScreenContainer>
+      </KeyboardAvoidingView>
+    </AuthBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  hero: { alignItems: 'center', gap: 10, marginBottom: 28 },
-  title: { fontWeight: '700', textAlign: 'center' },
-  subtitle: { color: '#6b7280', textAlign: 'center', lineHeight: 22, paddingHorizontal: 8 },
-  warnBox: { backgroundColor: '#fef3c7', borderRadius: 10, padding: 12, marginBottom: 16 },
-  input: { marginBottom: 12, backgroundColor: 'transparent' },
-  error: { color: '#ef4444', textAlign: 'right', marginBottom: 8 },
+  flex: { flex: 1 },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 32,
+  },
+  card: {
+    width: '100%',
+    maxWidth: 420,
+    alignSelf: 'center',
+  },
+  logoRow: {
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  warnBox: {
+    backgroundColor: 'rgba(254, 243, 199, 0.85)',
+    borderRadius: 10,
+    padding: 10,
+    marginBottom: 12,
+  },
+  warnText: { textAlign: 'center', lineHeight: 20, color: '#92400e' },
+  input: { marginBottom: 12, backgroundColor: 'rgba(255, 255, 255, 0.55)' },
+  error: { color: '#fecaca', textAlign: 'center', marginBottom: 8 },
+  button: { borderRadius: 12 },
+  buttonContent: { paddingVertical: 6 },
 });

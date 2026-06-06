@@ -14,8 +14,8 @@ export function AuthNavigator() {
 
   return (
     <Stack.Navigator screenOptions={options}>
-      <Stack.Screen name="Login" component={LoginScreen} options={{ title: 'ورود' }} />
-      <Stack.Screen name="Otp" component={OtpScreen} options={{ title: 'تأیید OTP' }} />
+      <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+      <Stack.Screen name="Otp" component={OtpScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
   );
 }
