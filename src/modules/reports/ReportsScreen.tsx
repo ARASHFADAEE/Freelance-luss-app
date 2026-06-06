@@ -6,6 +6,7 @@ import type { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/core/theme/useAppTheme';
 import { useQuery } from '@tanstack/react-query';
+import { analyticsQueryKeys, liveAnalyticsQueryOptions, useRefetchAnalyticsOnFocus } from '@/core/query/analyticsQueries';
 import { analyticsRepository } from '@/database';
 import { formatCurrency } from '@/core/utils/currency';
 import { addDaysISO, todayISO } from '@/core/utils/persian';
@@ -33,40 +34,47 @@ export function ReportsScreen() {
   const [fromDate, setFromDate] = useState(addDaysISO(todayISO(), -90));
   const [toDate, setToDate] = useState(todayISO());
 
+  useRefetchAnalyticsOnFocus();
+
   const { data: clientReports = [] } = useQuery({
-    queryKey: ['client-reports'],
+    queryKey: analyticsQueryKeys.clientReports,
     queryFn: () => analyticsRepository.getClientReports(),
     enabled: hasProFeatures(),
+    ...liveAnalyticsQueryOptions,
   });
 
   const { data: serviceReports = [] } = useQuery({
-    queryKey: ['service-reports'],
+    queryKey: analyticsQueryKeys.serviceReports,
     queryFn: () => analyticsRepository.getServiceReports(),
     enabled: hasProFeatures(),
+    ...liveAnalyticsQueryOptions,
   });
 
   const { data: presetChart = [] } = useQuery({
-    queryKey: ['report-chart', period],
+    queryKey: [...analyticsQueryKeys.reportChart, period],
     queryFn: () =>
       period === 'monthly'
         ? analyticsRepository.getMonthlyData(12)
         : analyticsRepository.getYearlyData(5),
     enabled: hasProFeatures() && period !== 'custom',
+    ...liveAnalyticsQueryOptions,
   });
 
   const { data: rangeData } = useQuery({
-    queryKey: ['report-range', fromDate, toDate],
+    queryKey: [...analyticsQueryKeys.reportRange, fromDate, toDate],
     queryFn: () => analyticsRepository.getRangeData(fromDate, toDate),
     enabled: hasProFeatures() && period === 'custom',
+    ...liveAnalyticsQueryOptions,
   });
 
   const { data: expenseBreakdown = [] } = useQuery({
-    queryKey: ['expense-breakdown', period, fromDate, toDate],
+    queryKey: [...analyticsQueryKeys.expenseBreakdown, period, fromDate, toDate],
     queryFn: () =>
       period === 'custom'
         ? analyticsRepository.getExpenseBreakdownInRange(fromDate, toDate)
         : analyticsRepository.getExpenseBreakdown(),
     enabled: hasProFeatures(),
+    ...liveAnalyticsQueryOptions,
   });
 
   const chartSource = period === 'custom' ? (rangeData?.chart ?? []) : presetChart;
@@ -149,7 +157,14 @@ export function ReportsScreen() {
             {period === 'monthly' ? '۱۲ ماه اخیر' : period === 'yearly' ? '۵ سال اخیر' : 'نمودار بازه انتخابی'}
           </Text>
           <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant, marginBottom: 8, textAlign: 'right' }}>میلیون تومان</Text>
-          <SimpleBarChart data={bars} revenueColor={theme.custom.success} expenseColor={theme.custom.danger} revenueLabel="درآمد" expenseLabel="هزینه" />
+          <SimpleBarChart
+            key={bars.map((d) => `${d.label}:${d.revenue}:${d.expenses}`).join('|')}
+            data={bars}
+            revenueColor={theme.custom.success}
+            expenseColor={theme.custom.danger}
+            revenueLabel="درآمد"
+            expenseLabel="هزینه"
+          />
         </View>
       )}
 

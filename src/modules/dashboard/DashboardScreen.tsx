@@ -3,6 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { analyticsQueryKeys, liveAnalyticsQueryOptions, useRefetchAnalyticsOnFocus } from '@/core/query/analyticsQueries';
 import { analyticsRepository } from '@/database';
 import { formatCurrency } from '@/core/utils/currency';
 import { useProfileStore } from '@/stores/profileStore';
@@ -22,15 +23,19 @@ export function DashboardScreen() {
   const isInTrial = useSubscriptionStore((s) => s.isInTrial);
   const currency = profile?.currency ?? 'TOMAN';
 
+  useRefetchAnalyticsOnFocus();
+
   const { data: stats, isLoading } = useQuery({
-    queryKey: ['dashboard-stats'],
+    queryKey: analyticsQueryKeys.dashboardStats,
     queryFn: () => analyticsRepository.getDashboardStats(),
+    ...liveAnalyticsQueryOptions,
   });
 
   const { data: monthlyData = [] } = useQuery({
-    queryKey: ['monthly-data'],
+    queryKey: analyticsQueryKeys.monthlyData,
     queryFn: () => analyticsRepository.getMonthlyData(6),
     enabled: hasProFeatures(),
+    ...liveAnalyticsQueryOptions,
   });
 
   const chartData = monthlyData.map((m) => ({
@@ -67,6 +72,7 @@ export function DashboardScreen() {
           <Text variant="labelLarge" style={{ textAlign: 'right', marginBottom: 4, fontWeight: '600' }}> نمودار ۶ ماه اخیر</Text>
           <Text variant="labelSmall" style={{ textAlign: 'right', color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>بر اساس میلیون تومان</Text>
           <SimpleBarChart
+            key={chartData.map((d) => `${d.label}:${d.revenue}:${d.expenses}`).join('|')}
             data={chartData}
             height={300}
             revenueColor={theme.custom.success}

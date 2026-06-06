@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { invalidateAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { expenseRepository } from '@/database';
 import { EXPENSE_CATEGORIES } from '@/core/constants';
 import type { MoreStackParamList } from '@/navigation/types';
@@ -57,7 +58,11 @@ export function ExpenseFormScreen() {
       if (expenseId) await expenseRepository.update(expenseId, data);
       else await expenseRepository.create({ ...data, description: data.description ?? '' });
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['expenses'] }); navigation.goBack(); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      void invalidateAnalyticsQueries(queryClient);
+      navigation.goBack();
+    },
     onError: (e) => setError(e.message),
   });
 

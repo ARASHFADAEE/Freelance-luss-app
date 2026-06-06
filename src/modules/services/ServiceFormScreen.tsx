@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { invalidateAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { serviceRepository } from '@/database';
 import { SERVICE_CATEGORIES } from '@/core/constants';
 import type { MoreStackParamList } from '@/navigation/types';
@@ -54,7 +55,11 @@ export function ServiceFormScreen() {
       if (serviceId) await serviceRepository.update(serviceId, data);
       else await serviceRepository.create({ ...data, description: data.description ?? '' });
     },
-    onSuccess: () => { queryClient.invalidateQueries({ queryKey: ['services'] }); navigation.goBack(); },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['services'] });
+      void invalidateAnalyticsQueries(queryClient);
+      navigation.goBack();
+    },
     onError: (e) => setError(e.message),
   });
 

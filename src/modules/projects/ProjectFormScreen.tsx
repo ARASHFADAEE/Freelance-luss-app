@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { invalidateAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { clientRepository, projectRepository } from '@/database';
 import { PROJECT_STATUS_LABELS } from '@/core/constants';
 import type { ProjectStatus } from '@/core/types';
@@ -105,6 +106,7 @@ export function ProjectFormScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects'] });
+      void invalidateAnalyticsQueries(queryClient);
       navigation.goBack();
     },
     onError: (e) => setError(e.message),
