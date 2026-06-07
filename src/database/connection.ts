@@ -81,7 +81,7 @@ export async function getDatabase(): Promise<SQLite.SQLiteDatabase> {
   return dbPromise;
 }
 
-export async function resetDatabase(): Promise<void> {
+export async function clearBusinessData(): Promise<void> {
   const db = await getDatabase();
   await db.execAsync(`
     DELETE FROM invoice_items;
@@ -91,6 +91,13 @@ export async function resetDatabase(): Promise<void> {
     DELETE FROM clients;
     DELETE FROM services;
     DELETE FROM expenses;
+  `);
+}
+
+export async function resetDatabase(): Promise<void> {
+  await clearBusinessData();
+  const db = await getDatabase();
+  await db.execAsync(`
     DELETE FROM profile;
     DELETE FROM app_settings;
   `);

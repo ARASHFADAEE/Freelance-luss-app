@@ -1,4 +1,4 @@
-export { getDatabase, resetDatabase } from './connection';
+export { getDatabase, resetDatabase, clearBusinessData } from './connection';
 export { seedSampleData } from './sampleData';
 export { clientRepository } from './repositories/clientRepository';
 export { projectRepository } from './repositories/projectRepository';

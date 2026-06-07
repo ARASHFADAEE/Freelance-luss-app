@@ -2,7 +2,8 @@
 
 این سند برای **Backend Developer** است تا سیستم **فضای ابری فریلنس پلاس** را پیاده‌سازی کند.
 
-> **Auth / OTP / Subscription:** [`BACKEND_API.md`](./BACKEND_API.md) و [`LARAVEL_BACKEND.md`](./LARAVEL_BACKEND.md)
+> **Auth / OTP / Subscription:** [`BACKEND_API.md`](./BACKEND_API.md) و [`LARAVEL_BACKEND.md`](./LARAVEL_BACKEND.md)  
+> **پاک‌سازی داده (ریست):** [`DATA_RESET_API.md`](./DATA_RESET_API.md)
 
 ---
 

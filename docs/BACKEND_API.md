@@ -4,7 +4,8 @@
 
 > **پیاده‌سازی Laravel:** جزئیات migration، SMS.ir و Cafe Bazaar در [`LARAVEL_BACKEND.md`](./LARAVEL_BACKEND.md)  
 > **انتشار کافه‌بازار:** [`CAFE_BAZAAR_RELEASE.md`](./CAFE_BAZAAR_RELEASE.md)  
-> **همگام‌سازی ابری (CRUD کامل):** [`CLOUD_SYNC_API.md`](./CLOUD_SYNC_API.md)
+> **همگام‌سازی ابری (CRUD کامل):** [`CLOUD_SYNC_API.md`](./CLOUD_SYNC_API.md)  
+> **پاک‌سازی داده (ریست تنظیمات):** [`DATA_RESET_API.md`](./DATA_RESET_API.md)
 
 ### مسیرهای API در اپ موبایل (Production)
 

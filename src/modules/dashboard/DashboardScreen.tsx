@@ -91,6 +91,6 @@ export function DashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
+  grid: { flexDirection: 'row-reverse', flexWrap: 'wrap', gap: 10, marginBottom: 16 },
   chartBox: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, padding: 16 },
 });

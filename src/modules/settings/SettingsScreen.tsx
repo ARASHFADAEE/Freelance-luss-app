@@ -10,6 +10,7 @@ import { useThemeStore } from '@/stores/themeStore';
 import { useAuth } from '@/hooks/useAuth';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { StorageModeSettingsSection } from '@/modules/settings/StorageModeSettingsSection';
+import { DataResetSettingsSection } from '@/modules/settings/DataResetSettingsSection';
 
 import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
 const listTitleStyle = { textAlign: 'right' as const, writingDirection: 'rtl' as const };
@@ -72,6 +73,8 @@ export function SettingsScreen() {
           />
         )}
       </List.Section>
+
+      <DataResetSettingsSection />
 
       {isAuthenticated && (
         <Button mode="outlined" onPress={handleLogout} style={{ marginTop: 8 }}>

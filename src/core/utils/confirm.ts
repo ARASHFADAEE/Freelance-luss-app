@@ -1,11 +1,13 @@
 import { Alert, Platform } from 'react-native';
 
-export function confirmLogout(onConfirm: () => void | Promise<void>): void {
-  const title = 'خروج از حساب';
-  const message = 'آیا مطمئن هستید؟';
-
+function confirmAction(
+  title: string,
+  message: string,
+  confirmLabel: string,
+  onConfirm: () => void | Promise<void>,
+): void {
   if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined' && window.confirm(`${title}\n${message}`)) {
+    if (typeof window !== 'undefined' && window.confirm(`${title}\n\n${message}`)) {
       void Promise.resolve(onConfirm());
     }
     return;
@@ -13,6 +15,19 @@ export function confirmLogout(onConfirm: () => void | Promise<void>): void {
 
   Alert.alert(title, message, [
     { text: 'انصراف', style: 'cancel' },
-    { text: 'خروج', style: 'destructive', onPress: () => void Promise.resolve(onConfirm()) },
+    { text: confirmLabel, style: 'destructive', onPress: () => void Promise.resolve(onConfirm()) },
   ]);
+}
+
+export function confirmLogout(onConfirm: () => void | Promise<void>): void {
+  confirmAction('خروج از حساب', 'آیا مطمئن هستید؟', 'خروج', onConfirm);
+}
+
+export function confirmResetData(onConfirm: () => void | Promise<void>): void {
+  confirmAction(
+    'پاک‌سازی همه داده‌ها',
+    'همه مشتریان، پروژه‌ها، فاکتورها، پرداخت‌ها، هزینه‌ها و خدمات حذف می‌شوند.\nپروفایل، اشتراک و تنظیمات اپ حفظ می‌شوند.\nاین عمل قابل بازگشت نیست.',
+    'پاک‌سازی',
+    onConfirm,
+  );
 }
