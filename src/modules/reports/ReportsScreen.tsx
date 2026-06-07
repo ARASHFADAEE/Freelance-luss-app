@@ -11,7 +11,7 @@ import { analyticsRepository } from '@/database';
 import { formatCurrency } from '@/core/utils/currency';
 import { addDaysISO, todayISO } from '@/core/utils/persian';
 import { useProfileStore } from '@/stores/profileStore';
-import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { useHasProFeatures, useIsInTrial } from '@/hooks/useHasProFeatures';
 import { SimpleBarChart } from '@/shared/components/SimpleBarChart';
 import { PeriodToggle } from '@/shared/components/PeriodToggle';
 import { ReportListCard } from '@/shared/components/ReportListCard';
@@ -28,8 +28,8 @@ export function ReportsScreen() {
   const insets = useSafeAreaInsets();
   const { isWide } = useResponsive();
   const currency = useProfileStore((s) => s.profile?.currency ?? 'TOMAN');
-  const hasProFeatures = useSubscriptionStore((s) => s.hasProFeatures);
-  const isInTrial = useSubscriptionStore((s) => s.isInTrial);
+  const hasPro = useHasProFeatures();
+  const isInTrial = useIsInTrial();
   const [period, setPeriod] = useState<PeriodFilter>('monthly');
   const [fromDate, setFromDate] = useState(addDaysISO(todayISO(), -90));
   const [toDate, setToDate] = useState(todayISO());
@@ -39,14 +39,14 @@ export function ReportsScreen() {
   const { data: clientReports = [] } = useQuery({
     queryKey: analyticsQueryKeys.clientReports,
     queryFn: () => analyticsRepository.getClientReports(),
-    enabled: hasProFeatures(),
+    enabled: hasPro,
     ...liveAnalyticsQueryOptions,
   });
 
   const { data: serviceReports = [] } = useQuery({
     queryKey: analyticsQueryKeys.serviceReports,
     queryFn: () => analyticsRepository.getServiceReports(),
-    enabled: hasProFeatures(),
+    enabled: hasPro,
     ...liveAnalyticsQueryOptions,
   });
 
@@ -56,14 +56,14 @@ export function ReportsScreen() {
       period === 'monthly'
         ? analyticsRepository.getMonthlyData(12)
         : analyticsRepository.getYearlyData(5),
-    enabled: hasProFeatures() && period !== 'custom',
+    enabled: hasPro && period !== 'custom',
     ...liveAnalyticsQueryOptions,
   });
 
   const { data: rangeData } = useQuery({
     queryKey: [...analyticsQueryKeys.reportRange, fromDate, toDate],
     queryFn: () => analyticsRepository.getRangeData(fromDate, toDate),
-    enabled: hasProFeatures() && period === 'custom',
+    enabled: hasPro && period === 'custom',
     ...liveAnalyticsQueryOptions,
   });
 
@@ -73,7 +73,7 @@ export function ReportsScreen() {
       period === 'custom'
         ? analyticsRepository.getExpenseBreakdownInRange(fromDate, toDate)
         : analyticsRepository.getExpenseBreakdown(),
-    enabled: hasProFeatures(),
+    enabled: hasPro,
     ...liveAnalyticsQueryOptions,
   });
 
@@ -91,12 +91,12 @@ export function ReportsScreen() {
     expenses: m.expenses / 1_000_000,
   })), [chartSource, period]);
 
-  if (!hasProFeatures()) {
+  if (!hasPro) {
     return (
       <View style={[styles.locked, { backgroundColor: theme.colors.background }]}>
         <Text variant="titleMedium" style={{ textAlign: 'center' }}>گزارش‌های پیشرفته نیاز به Pro دارند</Text>
         <Text variant="bodyMedium" style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant, marginTop: 8, lineHeight: 22 }}>
-          {isInTrial()
+          {isInTrial
             ? 'دوره آزمایشی شما تمام شده است.'
             : '۳ روز اول رایگان است — سپس اشتراک Pro لازم است.'}
         </Text>

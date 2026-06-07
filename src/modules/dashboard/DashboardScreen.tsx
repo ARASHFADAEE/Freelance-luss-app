@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { Text } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
@@ -7,7 +7,7 @@ import { analyticsQueryKeys, liveAnalyticsQueryOptions, useRefetchAnalyticsOnFoc
 import { analyticsRepository } from '@/database';
 import { formatCurrency } from '@/core/utils/currency';
 import { useProfileStore } from '@/stores/profileStore';
-import { useSubscriptionStore } from '@/stores/subscriptionStore';
+import { useHasProFeatures, useIsInTrial } from '@/hooks/useHasProFeatures';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { StatCard } from '@/shared/components/StatCard';
 import { SkeletonCard } from '@/shared/components/Skeleton';
@@ -19,30 +19,39 @@ export function DashboardScreen() {
   const theme = useAppTheme();
   const insets = useSafeAreaInsets();
   const profile = useProfileStore((s) => s.profile);
-  const hasProFeatures = useSubscriptionStore((s) => s.hasProFeatures);
-  const isInTrial = useSubscriptionStore((s) => s.isInTrial);
+  const hasPro = useHasProFeatures();
+  const isInTrial = useIsInTrial();
   const currency = profile?.currency ?? 'TOMAN';
 
   useRefetchAnalyticsOnFocus();
 
-  const { data: stats, isLoading } = useQuery({
+  const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: analyticsQueryKeys.dashboardStats,
     queryFn: () => analyticsRepository.getDashboardStats(),
     ...liveAnalyticsQueryOptions,
   });
 
-  const { data: monthlyData = [] } = useQuery({
+  const { data: monthlyData, isLoading: chartLoading } = useQuery({
     queryKey: analyticsQueryKeys.monthlyData,
     queryFn: () => analyticsRepository.getMonthlyData(6),
-    enabled: hasProFeatures(),
+    enabled: hasPro,
     ...liveAnalyticsQueryOptions,
   });
 
-  const chartData = monthlyData.map((m) => ({
-    label: m.label.split(' ')[0],
-    revenue: m.revenue / 1_000_000,
-    expenses: m.expenses / 1_000_000,
-  }));
+  const chartData = useMemo(
+    () =>
+      (monthlyData ?? []).map((m) => ({
+        label: m.label.split(' ')[0],
+        revenue: m.revenue / 1_000_000,
+        expenses: m.expenses / 1_000_000,
+      })),
+    [monthlyData],
+  );
+
+  const chartKey = useMemo(
+    () => chartData.map((d) => `${d.label}:${d.revenue}:${d.expenses}`).join('|'),
+    [chartData],
+  );
 
   return (
     <ScreenContainer>
@@ -50,11 +59,11 @@ export function DashboardScreen() {
         <Text variant="titleLarge" style={{ fontWeight: '700', textAlign: 'right' }}>{APP_NAME}</Text>
         <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>
           {profile?.fullName ? `سلام ${profile.fullName}` : 'خلاصه مالی'}
-          {hasProFeatures() ? (isInTrial() ? ' · دوره آزمایشی' : ' · Pro') : ''}
+          {hasPro ? (isInTrial ? ' · دوره آزمایشی' : ' · Pro') : ''}
         </Text>
       </View>
 
-      {isLoading ? (
+      {statsLoading ? (
         <View style={styles.grid}><SkeletonCard /><SkeletonCard /><SkeletonCard /><SkeletonCard /></View>
       ) : stats ? (
         <View style={styles.grid}>
@@ -67,21 +76,25 @@ export function DashboardScreen() {
         </View>
       ) : null}
 
-      {hasProFeatures() && chartData.length > 0 && (
+      {hasPro && (
         <View style={[styles.chartBox, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-          <Text variant="labelLarge" style={{ textAlign: 'right', marginBottom: 4, fontWeight: '600' }}> نمودار ۶ ماه اخیر</Text>
+          <Text variant="labelLarge" style={{ textAlign: 'right', marginBottom: 4, fontWeight: '600' }}>نمودار ۶ ماه اخیر</Text>
           <Text variant="labelSmall" style={{ textAlign: 'right', color: theme.colors.onSurfaceVariant, marginBottom: 12 }}>بر اساس میلیون تومان</Text>
-          <SimpleBarChart
-            key={chartData.map((d) => `${d.label}:${d.revenue}:${d.expenses}`).join('|')}
-            data={chartData}
-            height={300}
-            revenueColor={theme.custom.success}
-            expenseColor={theme.custom.danger}
-          />
+          {chartLoading ? (
+            <SkeletonCard />
+          ) : chartData.length > 0 ? (
+            <SimpleBarChart
+              key={chartKey}
+              data={chartData}
+              height={300}
+              revenueColor={theme.custom.success}
+              expenseColor={theme.custom.danger}
+            />
+          ) : null}
         </View>
       )}
 
-      {!hasProFeatures() && (
+      {!hasPro && (
         <Text variant="bodySmall" style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant, marginTop: 8 }}>
           نمودارها با اشتراک Pro یا دوره آزمایشی ۳ روزه فعال می‌شود
         </Text>

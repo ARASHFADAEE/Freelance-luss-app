@@ -29,6 +29,13 @@ export const liveAnalyticsQueryOptions = {
   refetchOnWindowFocus: true,
 } as const;
 
+export function refetchAnalyticsQueries(queryClient: QueryClient) {
+  return queryClient.refetchQueries({
+    predicate: (query) =>
+      typeof query.queryKey[0] === 'string' && ANALYTICS_QUERY_ROOTS.has(query.queryKey[0]),
+  });
+}
+
 export function invalidateAnalyticsQueries(queryClient: QueryClient) {
   return queryClient.invalidateQueries({
     predicate: (query) =>
@@ -41,7 +48,7 @@ export function useRefetchAnalyticsOnFocus() {
 
   useFocusEffect(
     useCallback(() => {
-      void invalidateAnalyticsQueries(queryClient);
+      void refetchAnalyticsQueries(queryClient);
     }, [queryClient]),
   );
 }

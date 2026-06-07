@@ -1,7 +1,11 @@
 import jalaali from 'jalaali-js';
 import type { ClientReport, DashboardStats, MonthlyDataPoint, ServiceReport } from '@/core/types';
-import { formatJalaliMonth, getJalaliYear, toPersianDigits } from '@/core/utils/persian';
+import { formatJalaliMonth, getJalaliYear, toLatinDigits, toPersianDigits } from '@/core/utils/persian';
 import { BaseRepository } from './base';
+
+function monthKeyFromDate(dateStr: string): string {
+  return toLatinDigits(dateStr).slice(0, 7);
+}
 
 export class AnalyticsRepository extends BaseRepository {
   async getDashboardStats(): Promise<DashboardStats> {
@@ -22,15 +26,15 @@ export class AnalyticsRepository extends BaseRepository {
     const invoices = await db.getAllAsync<{ status: string }>('SELECT status FROM invoices');
 
     const monthlyRevenue = payments
-      .filter((p) => p.paymentDate.startsWith(currentMonth))
+      .filter((p) => monthKeyFromDate(p.paymentDate) === currentMonth)
       .reduce((sum, p) => sum + p.amount, 0);
 
     const yearlyRevenue = payments
-      .filter((p) => p.paymentDate.startsWith(currentYear))
+      .filter((p) => monthKeyFromDate(p.paymentDate).startsWith(currentYear))
       .reduce((sum, p) => sum + p.amount, 0);
 
     const monthlyExpenses = expenses
-      .filter((e) => e.date.startsWith(currentMonth))
+      .filter((e) => monthKeyFromDate(e.date) === currentMonth)
       .reduce((sum, e) => sum + e.amount, 0);
 
     const outstandingReceivables = projects
@@ -81,14 +85,14 @@ export class AnalyticsRepository extends BaseRepository {
     }
 
     for (const p of payments) {
-      const key = p.paymentDate.substring(0, 7);
+      const key = monthKeyFromDate(p.paymentDate);
       if (monthMap.has(key)) {
         monthMap.get(key)!.revenue += p.amount;
       }
     }
 
     for (const e of expenses) {
-      const key = e.date.substring(0, 7);
+      const key = monthKeyFromDate(e.date);
       if (monthMap.has(key)) {
         monthMap.get(key)!.expenses += e.amount;
       }
@@ -219,12 +223,12 @@ export class AnalyticsRepository extends BaseRepository {
     }
 
     for (const p of payments) {
-      const key = p.paymentDate.substring(0, 7);
+      const key = monthKeyFromDate(p.paymentDate);
       if (monthMap.has(key)) monthMap.get(key)!.revenue += p.amount;
     }
 
     for (const e of expenses) {
-      const key = e.date.substring(0, 7);
+      const key = monthKeyFromDate(e.date);
       if (monthMap.has(key)) monthMap.get(key)!.expenses += e.amount;
     }
 

@@ -4,7 +4,7 @@ import { Button, IconButton, Menu, Snackbar, Text } from 'react-native-paper';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { invalidateAnalyticsQueries } from '@/core/query/analyticsQueries';
+import { refetchAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { clientRepository, invoiceRepository, serviceRepository } from '@/database';
 import type { InvoicesStackParamList } from '@/navigation/types';
 import { rtlLayoutStyle } from '@/core/theme/rtlLayout';
@@ -92,7 +92,7 @@ export function InvoiceFormScreen() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['invoices'] });
-      void invalidateAnalyticsQueries(queryClient);
+      void refetchAnalyticsQueries(queryClient);
       navigation.goBack();
     },
     onError: (e) => setError(e.message),

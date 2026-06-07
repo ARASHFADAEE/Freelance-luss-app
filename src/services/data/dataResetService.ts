@@ -1,6 +1,6 @@
 import { clearBusinessData } from '@/database/connection';
 import { IS_API_CONFIGURED } from '@/core/config/env';
-import { invalidateAnalyticsQueries } from '@/core/query/analyticsQueries';
+import { refetchAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { apiRequest } from '@/services/api/ApiClient';
 import { useStorageModeStore } from '@/stores/storageModeStore';
 import type { QueryClient } from '@tanstack/react-query';
@@ -22,5 +22,5 @@ export async function resetAllBusinessData(queryClient: QueryClient): Promise<vo
   await resetBusinessDataOnServer();
   await clearBusinessData();
   await queryClient.invalidateQueries();
-  await invalidateAnalyticsQueries(queryClient);
+  await refetchAnalyticsQueries(queryClient);
 }

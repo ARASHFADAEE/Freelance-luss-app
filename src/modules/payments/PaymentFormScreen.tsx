@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { invalidateAnalyticsQueries } from '@/core/query/analyticsQueries';
+import { refetchAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { paymentRepository, projectRepository } from '@/database';
 import type { ProjectsStackParamList } from '@/navigation/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
@@ -63,7 +63,7 @@ export function PaymentFormScreen() {
       queryClient.invalidateQueries({ queryKey: ['payments'] });
       queryClient.invalidateQueries({ queryKey: ['projects'] });
       queryClient.invalidateQueries({ queryKey: ['project', route.params.projectId] });
-      void invalidateAnalyticsQueries(queryClient);
+      void refetchAnalyticsQueries(queryClient);
       if (result.settled) {
         setSuccess('پرداخت ثبت شد — پروژه تسویه شده است ✓');
         setTimeout(() => navigation.goBack(), 1400);
