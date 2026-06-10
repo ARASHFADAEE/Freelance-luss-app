@@ -61,7 +61,7 @@ export function AppSplash({ message = 'در حال آماده‌سازی...' }: 
       <View style={styles.bgGlowBottom} />
 
       <Animated.View style={[styles.logoWrap, logoStyle]}>
-        <AppLogo size={96} />
+        <AppLogo size={120} />
       </Animated.View>
 
       <Animated.View style={textStyle}>

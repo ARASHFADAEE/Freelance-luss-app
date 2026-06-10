@@ -42,7 +42,7 @@ export function LoginScreen() {
         <View style={styles.center}>
           <AuthGlassCard style={styles.card}>
             <View style={styles.logoRow}>
-              <AppLogo size={72} />
+              <AppLogo size={112} />
             </View>
 
             <AuthModeTabs mode={mode} onChange={setMode} />
@@ -103,7 +103,8 @@ const styles = StyleSheet.create({
   },
   logoRow: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 24,
+    marginTop: 4,
   },
   warnBox: {
     backgroundColor: 'rgba(254, 243, 199, 0.85)',

@@ -74,7 +74,7 @@ export function OtpScreen() {
             </Pressable>
 
             <View style={styles.logoRow}>
-              <AppLogo size={64} />
+              <AppLogo size={96} />
             </View>
 
             <Text variant="titleMedium" style={styles.phoneText}>
