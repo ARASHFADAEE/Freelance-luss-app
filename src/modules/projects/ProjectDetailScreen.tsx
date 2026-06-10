@@ -1,6 +1,6 @@
 import React from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -12,8 +12,14 @@ import { formatJalaliDate } from '@/core/utils/persian';
 import type { ProjectsStackParamList } from '@/navigation/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { ProgressBar } from '@/shared/components/ProgressBar';
+import { StatusBadge } from '@/shared/components/StatusBadge';
+import { ListCard } from '@/shared/components/ListCard';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { AppText } from '@/shared/components/AppText';
+import { AmountText } from '@/shared/components/AmountText';
 import { useProfileStore } from '@/stores/profileStore';
 import { useAppTheme } from '@/core/theme/useAppTheme';
+import { radius, spacing } from '@/core/theme/tokens';
 
 export function ProjectDetailScreen() {
   const theme = useAppTheme();
@@ -42,67 +48,88 @@ export function ProjectDetailScreen() {
   const progress = project.totalAmount > 0 ? (project.receivedAmount / project.totalAmount) * 100 : 0;
   const isSettled = project.totalAmount > 0 && project.remainingAmount <= 0;
 
-  return (
-    <ScreenContainer>
-      <Text variant="titleLarge" style={{ fontWeight: '700', textAlign: 'right' }}>{project.title}</Text>
-      {isSettled && (
-        <View style={[styles.settledBadge, { backgroundColor: theme.custom.success + '18' }]}>
-          <Text variant="labelLarge" style={{ color: theme.custom.success, fontWeight: '700' }}>پروژه تسویه شده ✓</Text>
-        </View>
-      )}
-      <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right', marginBottom: 16 }}>
-        {client?.fullName} · {PROJECT_STATUS_LABELS[project.status]}
-      </Text>
+  const stickyFooter = (
+    <View style={styles.footerActions}>
+      <Button
+        mode="outlined"
+        icon="pencil"
+        onPress={() => navigation.navigate('ProjectForm', { projectId: project.id })}
+        style={styles.footerBtn}
+      >
+        ویرایش
+      </Button>
+      <Button
+        mode="contained"
+        icon="cash-plus"
+        onPress={() => navigation.navigate('PaymentForm', { projectId: project.id })}
+        style={styles.footerBtn}
+      >
+        ثبت پرداخت
+      </Button>
+    </View>
+  );
 
-      <View style={[styles.stats, { borderColor: theme.colors.outlineVariant }]}>
+  return (
+    <ScreenContainer stickyFooter={stickyFooter}>
+      <View style={styles.titleRow}>
+        <AppText variant="h1" style={{ flex: 1 }}>
+          {project.title}
+        </AppText>
+        {isSettled && <StatusBadge label="تسویه شده" tone="success" icon="check-circle" />}
+      </View>
+      <AppText variant="caption" color="muted" style={styles.meta}>
+        {client?.fullName} · {PROJECT_STATUS_LABELS[project.status]}
+      </AppText>
+
+      <View style={[styles.stats, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
         <View style={styles.statRow}>
-          <Text variant="bodyMedium">{formatCurrency(project.totalAmount, currency)}</Text>
-          <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>کل</Text>
+          <AmountText variant="bodyMedium">{formatCurrency(project.totalAmount, currency)}</AmountText>
+          <AppText variant="caption" color="muted">
+            کل
+          </AppText>
         </View>
         <View style={styles.statRow}>
-          <Text variant="bodyMedium" style={{ color: theme.custom.success }}>{formatCurrency(project.receivedAmount, currency)}</Text>
-          <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>دریافت</Text>
+          <AmountText variant="bodyMedium" color="success">
+            {formatCurrency(project.receivedAmount, currency)}
+          </AmountText>
+          <AppText variant="caption" color="muted">
+            دریافت
+          </AppText>
         </View>
         <View style={styles.statRow}>
-          <Text variant="bodyMedium" style={{ color: theme.custom.danger }}>{formatCurrency(project.remainingAmount, currency)}</Text>
-          <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>مانده</Text>
+          <AmountText variant="bodyMedium" color="danger">
+            {formatCurrency(project.remainingAmount, currency)}
+          </AmountText>
+          <AppText variant="caption" color="muted">
+            مانده
+          </AppText>
         </View>
         <ProgressBar progress={progress} />
       </View>
 
-      <View style={styles.actions}>
-        <Button
-          mode="contained"
-          icon="cash-plus"
-          onPress={() => navigation.navigate('PaymentForm', { projectId: project.id })}
-          style={styles.actionBtn}
-        >
-          ثبت پرداخت
-        </Button>
-        <Button
-          mode="outlined"
-          icon="pencil"
-          onPress={() => navigation.navigate('ProjectForm', { projectId: project.id })}
-          style={styles.actionBtn}
-        >
-          ویرایش
-        </Button>
-      </View>
-
-      <Text variant="titleSmall" style={styles.section}>پرداخت‌ها</Text>
+      <AppText variant="h3" style={styles.section}>
+        پرداخت‌ها
+      </AppText>
       <FlatList
         data={payments}
         scrollEnabled={false}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant }}>پرداختی نیست</Text>}
+        ListEmptyComponent={
+          <EmptyState icon="cash" title="پرداختی ثبت نشده" description="اولین پرداخت این پروژه را ثبت کنید" />
+        }
         renderItem={({ item }) => (
-          <View style={[styles.payRow, { borderColor: theme.colors.outlineVariant }]}>
-            <Text variant="bodyMedium" style={{ color: theme.custom.success }}>{formatCurrency(item.amount, currency)}</Text>
-            <View style={{ alignItems: 'flex-end' }}>
-              <Text variant="bodySmall">{formatJalaliDate(item.paymentDate)}</Text>
-              {item.description ? <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>{item.description}</Text> : null}
-            </View>
-          </View>
+          <ListCard
+            showChevron={false}
+            title={formatCurrency(item.amount, currency)}
+            subtitle={formatJalaliDate(item.paymentDate)}
+            right={
+              item.description ? (
+                <AppText variant="caption" color="muted" numberOfLines={2}>
+                  {item.description}
+                </AppText>
+              ) : undefined
+            }
+          />
         )}
       />
     </ScreenContainer>
@@ -110,11 +137,29 @@ export function ProjectDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  settledBadge: { alignSelf: 'flex-end', paddingHorizontal: 12, paddingVertical: 6, borderRadius: 8, marginBottom: 8 },
-  stats: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, padding: 14, marginBottom: 16 },
-  statRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', marginBottom: 6 },
-  actions: { flexDirection: 'row-reverse', gap: 12, marginBottom: 20 },
-  actionBtn: { flex: 1 },
-  section: { fontWeight: '600', marginBottom: 10, textAlign: 'right' },
-  payRow: { flexDirection: 'row-reverse', justifyContent: 'space-between', borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 10 },
+  titleRow: {
+    flexDirection: 'row-reverse',
+    alignItems: 'flex-start',
+    gap: spacing.sm,
+    marginBottom: spacing.xs,
+  },
+  meta: { marginBottom: spacing.lg },
+  stats: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.md,
+    padding: spacing.lg - 2,
+    marginBottom: spacing.xl,
+    gap: spacing.sm,
+  },
+  statRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  section: { marginBottom: spacing.md },
+  footerActions: {
+    flexDirection: 'row-reverse',
+    gap: spacing.sm,
+  },
+  footerBtn: { flex: 1 },
 });

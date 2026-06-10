@@ -4,11 +4,8 @@ import { useTheme } from 'react-native-paper';
 import type { MoreStackParamList } from '../types';
 import { createStackScreenOptions } from './createStackScreenOptions';
 import { MoreScreen } from '@/modules/settings/MoreScreen';
-import { ExpensesScreen } from '@/modules/expenses/ExpensesScreen';
-import { ExpenseFormScreen } from '@/modules/expenses/ExpenseFormScreen';
 import { ServicesScreen } from '@/modules/services/ServicesScreen';
 import { ServiceFormScreen } from '@/modules/services/ServiceFormScreen';
-import { ReportsScreen } from '@/modules/reports/ReportsScreen';
 import { CalculatorScreen } from '@/modules/projects/CalculatorScreen';
 import { NotificationsScreen } from '@/modules/notifications/NotificationsScreen';
 import { BackupScreen } from '@/modules/backup/BackupScreen';
@@ -26,11 +23,8 @@ export function MoreStack() {
   return (
     <Stack.Navigator screenOptions={options}>
       <Stack.Screen name="MoreMenu" component={MoreScreen} options={{ headerShown: false }} />
-      <Stack.Screen name="Expenses" component={ExpensesScreen} options={{ title: 'هزینه‌ها' }} />
-      <Stack.Screen name="ExpenseForm" component={ExpenseFormScreen} options={{ title: 'هزینه' }} />
       <Stack.Screen name="Services" component={ServicesScreen} options={{ title: 'خدمات' }} />
       <Stack.Screen name="ServiceForm" component={ServiceFormScreen} options={{ title: 'خدمت' }} />
-      <Stack.Screen name="Reports" component={ReportsScreen} options={{ title: 'گزارش‌ها' }} />
       <Stack.Screen name="Calculator" component={CalculatorScreen} options={{ title: 'محاسبه‌گر' }} />
       <Stack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'یادآوری‌ها' }} />
       <Stack.Screen name="Backup" component={BackupScreen} options={{ title: 'پشتیبان‌گیری' }} />

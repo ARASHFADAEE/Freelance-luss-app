@@ -1,31 +1,34 @@
 import type { Currency, ProjectStatus } from '../types';
+import { semanticDark, semanticLight } from '../theme/tokens';
 
 export const APP_NAME = 'فریلنس پلاس';
 
+/** @deprecated Prefer theme.custom from useAppTheme — kept for gradual migration */
 export const COLORS = {
-  primary: '#1e3a8a',
-  secondary: '#10b981',
-  success: '#059669',
-  warning: '#f59e0b',
-  danger: '#ef4444',
-  background: '#f8fafc',
-  card: '#ffffff',
-  text: '#111827',
-  subtext: '#6b7280',
-  border: '#e5e7eb',
+  primary: semanticLight.primary,
+  secondary: semanticLight.secondary,
+  success: semanticLight.success,
+  warning: semanticLight.warning,
+  danger: semanticLight.danger,
+  background: semanticLight.background,
+  card: semanticLight.card,
+  text: semanticLight.text,
+  subtext: semanticLight.textSecondary,
+  border: semanticLight.border,
 } as const;
 
+/** @deprecated Prefer theme.custom from useAppTheme */
 export const DARK_COLORS = {
-  primary: '#3b82f6',
-  secondary: '#34d399',
-  success: '#10b981',
-  warning: '#fbbf24',
-  danger: '#f87171',
-  background: '#0f172a',
-  card: '#1e293b',
-  text: '#f1f5f9',
-  subtext: '#94a3b8',
-  border: '#334155',
+  primary: semanticDark.primary,
+  secondary: semanticDark.secondary,
+  success: semanticDark.success,
+  warning: semanticDark.warning,
+  danger: semanticDark.danger,
+  background: semanticDark.background,
+  card: semanticDark.card,
+  text: semanticDark.text,
+  subtext: semanticDark.textSecondary,
+  border: semanticDark.border,
 } as const;
 
 export const PROJECT_STATUS_LABELS: Record<ProjectStatus, string> = {

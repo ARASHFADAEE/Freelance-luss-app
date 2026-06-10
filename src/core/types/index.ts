@@ -137,6 +137,18 @@ export interface DashboardStats {
   outstandingReceivables: number;
   activeProjects: number;
   unpaidInvoices: number;
+  overdueInvoices: number;
+  revenueTrendPercent: number;
+  expenseTrendPercent: number;
+  profitTrendPercent: number;
+}
+
+export interface DashboardInsight {
+  id: string;
+  icon: string;
+  title: string;
+  subtitle: string;
+  tone: 'success' | 'warning' | 'danger' | 'info';
 }
 
 export interface MonthlyDataPoint {

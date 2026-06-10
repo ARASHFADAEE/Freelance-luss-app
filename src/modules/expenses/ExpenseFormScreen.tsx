@@ -10,17 +10,19 @@ import type { RouteProp } from '@react-navigation/native';
 import { refetchAnalyticsQueries } from '@/core/query/analyticsQueries';
 import { expenseRepository } from '@/database';
 import { EXPENSE_CATEGORIES } from '@/core/constants';
-import type { MoreStackParamList } from '@/navigation/types';
+import type { FinancialStackParamList } from '@/navigation/types';
 import { todayISO } from '@/core/utils/persian';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
+import { FormSection } from '@/shared/components/FormSection';
 import { JalaliDateField } from '@/shared/components/JalaliDateField';
 import { CurrencyInput } from '@/shared/components/CurrencyInput';
 import { SelectPickerField } from '@/shared/components/SelectPickerField';
 import { FormTextInput } from '@/shared/components/FormTextInput';
+import { spacing } from '@/core/theme/tokens';
 
 const schema = z.object({
-  category: z.string(),
-  amount: z.preprocess((v) => Number(v), z.number().min(1)),
+  category: z.string().min(1, 'دسته‌بندی را انتخاب کنید'),
+  amount: z.preprocess((v) => Number(v), z.number().min(1, 'مبلغ باید بیشتر از صفر باشد')),
   description: z.string().optional(),
   date: z.string(),
 });
@@ -28,7 +30,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 export function ExpenseFormScreen() {
-  const route = useRoute<RouteProp<MoreStackParamList, 'ExpenseForm'>>();
+  const route = useRoute<RouteProp<FinancialStackParamList, 'ExpenseForm'>>();
   const navigation = useNavigation();
   const queryClient = useQueryClient();
   const expenseId = route.params?.expenseId;
@@ -40,7 +42,7 @@ export function ExpenseFormScreen() {
     enabled: !!expenseId,
   });
 
-  const { control, handleSubmit, reset, setValue, watch } = useForm<FormData>({
+  const { control, handleSubmit, reset, setValue, watch, formState } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { category: '', amount: 0, description: '', date: todayISO() },
   });
@@ -50,7 +52,14 @@ export function ExpenseFormScreen() {
   const date = watch('date');
 
   useEffect(() => {
-    if (expense) reset({ category: expense.category, amount: expense.amount, description: expense.description, date: expense.date });
+    if (expense) {
+      reset({
+        category: expense.category,
+        amount: expense.amount,
+        description: expense.description,
+        date: expense.date,
+      });
+    }
   }, [expense, reset]);
 
   const mutation = useMutation({
@@ -66,27 +75,48 @@ export function ExpenseFormScreen() {
     onError: (e) => setError(e.message),
   });
 
+  const saveButton = (
+    <Button mode="contained" onPress={handleSubmit((d) => mutation.mutate(d))} loading={mutation.isPending}>
+      ذخیره هزینه
+    </Button>
+  );
+
   return (
-    <ScreenContainer>
-      <SelectPickerField
-        label="دسته‌بندی هزینه"
-        value={category}
-        options={EXPENSE_CATEGORIES}
-        onChange={(c) => setValue('category', c)}
-        placeholder="مثلاً هاست، دامنه، تبلیغات..."
-        required
-      />
-      <CurrencyInput label="مبلغ" value={amount} onChangeValue={(n) => setValue('amount', n)} />
-      <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
-        <FormTextInput label="توضیح" value={value} onChangeText={onChange} style={styles.input} />
-      )} />
-      <JalaliDateField label="تاریخ" value={date} onChange={(d) => setValue('date', d)} />
-      <Button mode="contained" onPress={handleSubmit((d) => mutation.mutate(d))} loading={mutation.isPending} style={{ marginTop: 12 }}>ذخیره</Button>
-      <Snackbar visible={!!error} onDismiss={() => setError('')}>{error}</Snackbar>
+    <ScreenContainer stickyFooter={saveButton}>
+      <FormSection title="جزئیات هزینه">
+        <SelectPickerField
+          label="دسته‌بندی"
+          value={category}
+          options={EXPENSE_CATEGORIES}
+          onChange={(c) => setValue('category', c, { shouldValidate: true })}
+          placeholder="مثلاً هاست، دامنه، تبلیغات..."
+          required
+          errorMessage={formState.errors.category?.message}
+        />
+        <CurrencyInput
+          label="مبلغ"
+          required
+          value={amount}
+          onChangeValue={(n) => setValue('amount', n, { shouldValidate: true })}
+          errorMessage={formState.errors.amount?.message}
+        />
+        <Controller
+          control={control}
+          name="description"
+          render={({ field: { onChange, value } }) => (
+            <FormTextInput label="توضیح" value={value} onChangeText={onChange} style={styles.input} />
+          )}
+        />
+        <JalaliDateField label="تاریخ" value={date} onChange={(d) => setValue('date', d)} />
+      </FormSection>
+
+      <Snackbar visible={!!error} onDismiss={() => setError('')}>
+        {error}
+      </Snackbar>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  input: { backgroundColor: 'transparent', marginBottom: 8 },
+  input: { backgroundColor: 'transparent' },
 });

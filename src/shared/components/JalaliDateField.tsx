@@ -5,6 +5,8 @@ import DateTimePicker from 'react-native-ui-datepicker';
 import { formatJalaliDate, todayISO } from '@/core/utils/persian';
 import { isoToLocalDate, pickerDateToISO } from '@/core/utils/date';
 import { FONT_FAMILY } from '@/core/theme/fonts';
+import { a11y } from '@/core/accessibility/labels';
+import { radius, spacing } from '@/core/theme/tokens';
 
 interface Props {
   label: string;
@@ -36,7 +38,10 @@ export function JalaliDateField({ label, value, onChange }: Props) {
       </Text>
       <Pressable
         onPress={openPicker}
-        style={[styles.field, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}
+        accessibilityRole="button"
+        accessibilityLabel={`${label}، ${display}`}
+        accessibilityHint={a11y.action.selectDate}
+        style={[styles.field, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface, minHeight: 48 }]}
       >
         <Text variant="bodyLarge" style={{ color: value ? theme.colors.onSurface : theme.colors.onSurfaceVariant, textAlign: 'right' }}>
           {display}
@@ -72,7 +77,7 @@ export function JalaliDateField({ label, value, onChange }: Props) {
                   borderRadius: 10,
                 },
                 selected_label: {
-                  color: '#ffffff',
+                  color: theme.colors.onPrimary,
                   fontWeight: '700',
                   fontFamily: FONT_FAMILY,
                 },
@@ -102,14 +107,15 @@ export function JalaliDateField({ label, value, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  wrap: { marginBottom: 12 },
-  label: { textAlign: 'right', marginBottom: 6, writingDirection: 'rtl' },
+  wrap: { marginBottom: spacing.md },
+  label: { textAlign: 'right', marginBottom: spacing.xs + 2, writingDirection: 'rtl' },
   field: {
     borderWidth: 1,
-    borderRadius: 10,
-    paddingHorizontal: 14,
-    paddingVertical: 14,
+    borderRadius: radius.md - 2,
+    paddingHorizontal: spacing.md + 2,
+    paddingVertical: spacing.md + 2,
     alignItems: 'flex-end',
+    justifyContent: 'center',
   },
   overlay: {
     flex: 1,

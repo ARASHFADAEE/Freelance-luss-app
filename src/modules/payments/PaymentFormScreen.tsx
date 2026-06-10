@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Snackbar, Text } from 'react-native-paper';
+import { Button, Snackbar } from 'react-native-paper';
 import { FormTextInput } from '@/shared/components/FormTextInput';
+import { FormSection } from '@/shared/components/FormSection';
 import { useForm, Controller, type Resolver } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -14,13 +15,16 @@ import type { ProjectsStackParamList } from '@/navigation/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
 import { JalaliDateField } from '@/shared/components/JalaliDateField';
 import { CurrencyInput } from '@/shared/components/CurrencyInput';
+import { AppText } from '@/shared/components/AppText';
+import { AmountText } from '@/shared/components/AmountText';
 import { todayISO } from '@/core/utils/persian';
 import { formatCurrency } from '@/core/utils/currency';
 import { useProfileStore } from '@/stores/profileStore';
 import { useAppTheme } from '@/core/theme/useAppTheme';
+import { radius, spacing } from '@/core/theme/tokens';
 
 const schema = z.object({
-  amount: z.preprocess((v) => Number(v), z.number().min(1)),
+  amount: z.preprocess((v) => Number(v), z.number().min(1, 'مبلغ پرداخت را وارد کنید')),
   paymentDate: z.string(),
   description: z.string().optional(),
 });
@@ -41,7 +45,7 @@ export function PaymentFormScreen() {
     queryFn: () => projectRepository.getById(route.params.projectId),
   });
 
-  const { control, handleSubmit, setValue, watch } = useForm<FormData>({
+  const { control, handleSubmit, setValue, watch, formState } = useForm<FormData>({
     resolver: zodResolver(schema) as Resolver<FormData>,
     defaultValues: { amount: 0, paymentDate: todayISO(), description: '' },
   });
@@ -75,55 +79,110 @@ export function PaymentFormScreen() {
     onError: (e) => setError(e.message),
   });
 
+  const saveButton = (
+    <Button mode="contained" icon="cash-plus" onPress={handleSubmit((d) => mutation.mutate(d))} loading={mutation.isPending}>
+      ثبت پرداخت
+    </Button>
+  );
+
   return (
-    <ScreenContainer>
+    <ScreenContainer stickyFooter={saveButton}>
       {project && (
         <View style={[styles.summary, { borderColor: theme.colors.outlineVariant, backgroundColor: theme.colors.surface }]}>
-          <Text variant="titleSmall" style={{ fontWeight: '700', textAlign: 'right' }}>{project.title}</Text>
+          <AppText variant="h3">{project.title}</AppText>
           <View style={styles.summaryRow}>
-            <Text variant="bodyMedium">{formatCurrency(project.totalAmount, currency)}</Text>
-            <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>مبلغ کل</Text>
+            <AmountText variant="bodyMedium">{formatCurrency(project.totalAmount, currency)}</AmountText>
+            <AppText variant="caption" color="muted">
+              مبلغ کل
+            </AppText>
           </View>
           <View style={styles.summaryRow}>
-            <Text variant="bodyMedium" style={{ color: theme.custom.success }}>{formatCurrency(project.receivedAmount, currency)}</Text>
-            <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>دریافت‌شده</Text>
+            <AmountText variant="bodyMedium" color="success">
+              {formatCurrency(project.receivedAmount, currency)}
+            </AmountText>
+            <AppText variant="caption" color="muted">
+              دریافت‌شده
+            </AppText>
           </View>
           <View style={styles.summaryRow}>
-            <Text variant="bodyMedium" style={{ color: theme.custom.danger }}>{formatCurrency(project.remainingAmount, currency)}</Text>
-            <Text variant="labelSmall" style={{ color: theme.colors.onSurfaceVariant }}>مانده فعلی</Text>
+            <AmountText variant="bodyMedium" color="danger">
+              {formatCurrency(project.remainingAmount, currency)}
+            </AmountText>
+            <AppText variant="caption" color="muted">
+              مانده فعلی
+            </AppText>
           </View>
           {amount > 0 && (
-            <View style={[styles.preview, { backgroundColor: willSettle ? theme.custom.success + '18' : theme.colors.primary + '10' }]}>
-              <Text variant="bodySmall" style={{ textAlign: 'right', color: willSettle ? theme.custom.success : theme.colors.onSurface }}>
+            <View
+              style={[
+                styles.preview,
+                { backgroundColor: willSettle ? theme.custom.successMuted : theme.custom.primaryContainer },
+              ]}
+            >
+              <AppText variant="caption" color={willSettle ? 'success' : 'default'}>
                 {willSettle
                   ? 'با این پرداخت، پروژه کاملاً تسویه می‌شود'
                   : `مانده پس از ثبت: ${formatCurrency(afterPaymentRemaining, currency)}`}
-              </Text>
+              </AppText>
             </View>
           )}
         </View>
       )}
 
-      <View style={styles.form}>
-        <CurrencyInput label="مبلغ *" value={amount} onChangeValue={(n) => setValue('amount', n)} labelAlign="right" />
+      <FormSection title="ثبت پرداخت">
+        <CurrencyInput
+          label="مبلغ"
+          required
+          value={amount}
+          onChangeValue={(n) => setValue('amount', n, { shouldValidate: true })}
+          errorMessage={formState.errors.amount?.message}
+        />
         <JalaliDateField label="تاریخ پرداخت" value={paymentDate} onChange={(d) => setValue('paymentDate', d)} />
-        <Controller control={control} name="description" render={({ field: { onChange, value } }) => (
-          <FormTextInput label="توضیح (پیش‌پرداخت، قسط...)" value={value} onChangeText={onChange} style={styles.input} />
-        )} />
-        <Button mode="contained" onPress={handleSubmit((d) => mutation.mutate(d))} loading={mutation.isPending}>
-          ثبت پرداخت
-        </Button>
-      </View>
-      <Snackbar visible={!!error} onDismiss={() => setError('')}>{error}</Snackbar>
-      <Snackbar visible={!!success} onDismiss={() => setSuccess('')} duration={2000}>{success}</Snackbar>
+        <Controller
+          control={control}
+          name="description"
+          render={({ field: { onChange, value } }) => (
+            <FormTextInput
+              label="توضیح"
+              helperText="مثلاً پیش‌پرداخت، قسط اول..."
+              value={value}
+              onChangeText={onChange}
+              style={styles.input}
+            />
+          )}
+        />
+      </FormSection>
+
+      <Snackbar visible={!!error} onDismiss={() => setError('')}>
+        {error}
+      </Snackbar>
+      <Snackbar visible={!!success} onDismiss={() => setSuccess('')} duration={2000}>
+        {success}
+      </Snackbar>
     </ScreenContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  summary: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, padding: 14, marginBottom: 16, gap: 6 },
-  summaryRow: { flexDirection: 'row-reverse', justifyContent: 'space-between' },
-  preview: { marginTop: 8, padding: 10, borderRadius: 8 },
-  form: { gap: 10 },
+  summary: {
+    borderWidth: StyleSheet.hairlineWidth,
+    borderRadius: radius.md,
+    padding: spacing.lg - 2,
+    marginBottom: spacing.lg,
+    gap: spacing.sm,
+    alignItems: 'flex-end',
+  },
+  summaryRow: {
+    flexDirection: 'row-reverse',
+    justifyContent: 'space-between',
+    width: '100%',
+    alignItems: 'center',
+  },
+  preview: {
+    marginTop: spacing.xs,
+    padding: spacing.sm + 2,
+    borderRadius: radius.sm,
+    alignSelf: 'stretch',
+  },
   input: { backgroundColor: 'transparent' },
 });

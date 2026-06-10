@@ -10,6 +10,7 @@ interface Props {
   onChange: (value: string) => void;
   placeholder?: string;
   required?: boolean;
+  errorMessage?: string;
 }
 
 export function SelectPickerField({
@@ -19,6 +20,7 @@ export function SelectPickerField({
   onChange,
   placeholder = 'برای انتخاب لمس کنید',
   required,
+  errorMessage,
 }: Props) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
@@ -31,10 +33,16 @@ export function SelectPickerField({
       </Text>
       <Pressable
         onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={hasValue ? `${label}، ${value}` : `${label}، انتخاب کنید`}
         style={[
           styles.trigger,
           {
-            borderColor: hasValue ? theme.colors.primary : theme.colors.outlineVariant,
+            borderColor: errorMessage
+              ? theme.colors.error
+              : hasValue
+                ? theme.colors.primary
+                : theme.colors.outlineVariant,
             backgroundColor: theme.colors.surface,
           },
         ]}
@@ -61,6 +69,11 @@ export function SelectPickerField({
           <MaterialCommunityIcons name="format-list-bulleted" size={22} color={theme.colors.primary} />
         </View>
       </Pressable>
+      {errorMessage ? (
+        <Text variant="bodySmall" style={{ color: theme.colors.error, textAlign: 'right', marginTop: 4 }}>
+          {errorMessage}
+        </Text>
+      ) : null}
 
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={[styles.modal, { backgroundColor: theme.colors.background }]}>

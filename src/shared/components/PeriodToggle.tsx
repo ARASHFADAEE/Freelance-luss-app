@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
 import { Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { radius, spacing } from '@/core/theme/tokens';
 
 export interface PeriodOption<T extends string> {
   value: T;
@@ -19,24 +20,31 @@ export function PeriodToggle<T extends string>({ options, value, onChange }: Pro
   const theme = useTheme();
 
   return (
-    <View style={[styles.wrap, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}>
+    <View
+      style={[styles.wrap, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}
+      accessibilityRole="radiogroup"
+      accessibilityLabel="انتخاب بازه زمانی"
+    >
       {options.map((opt) => {
         const active = opt.value === value;
         return (
           <Pressable
             key={opt.value}
             onPress={() => onChange(opt.value)}
-            style={[styles.btn, active && { backgroundColor: theme.colors.primary }]}
+            accessibilityRole="radio"
+            accessibilityState={{ selected: active }}
+            accessibilityLabel={opt.label}
+            style={[styles.btn, active && { backgroundColor: theme.colors.primary }, { minHeight: 44 }]}
           >
             <MaterialCommunityIcons
               name={opt.icon}
               size={18}
-              color={active ? '#fff' : theme.colors.onSurfaceVariant}
+              color={active ? theme.colors.onPrimary : theme.colors.onSurfaceVariant}
             />
             <Text
               variant="labelLarge"
               style={{
-                color: active ? '#fff' : theme.colors.onSurface,
+                color: active ? theme.colors.onPrimary : theme.colors.onSurface,
                 fontWeight: active ? '700' : '500',
               }}
             >
@@ -52,20 +60,20 @@ export function PeriodToggle<T extends string>({ options, value, onChange }: Pro
 const styles = StyleSheet.create({
   wrap: {
     flexDirection: 'row-reverse',
-    borderRadius: 14,
+    borderRadius: radius.lg - 2,
     borderWidth: StyleSheet.hairlineWidth,
-    padding: 4,
-    gap: 4,
-    marginBottom: 16,
+    padding: spacing.xs,
+    gap: spacing.xs,
+    marginBottom: spacing.lg,
   },
   btn: {
     flex: 1,
     flexDirection: 'row-reverse',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 10,
+    gap: spacing.xs + 2,
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.md - 2,
   },
 });

@@ -1,8 +1,9 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Text } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppTheme } from '@/core/theme/useAppTheme';
+import { radius, spacing } from '@/core/theme/tokens';
+import { AppText } from './AppText';
 
 interface Props {
   icon: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -11,31 +12,48 @@ interface Props {
   value: string;
   accentColor?: string;
   rank?: number;
+  accessibilityLabel?: string;
 }
 
-export function ReportListCard({ icon, title, subtitle, value, accentColor, rank }: Props) {
+export function ReportListCard({
+  icon,
+  title,
+  subtitle,
+  value,
+  accentColor,
+  rank,
+  accessibilityLabel,
+}: Props) {
   const theme = useAppTheme();
   const color = accentColor ?? theme.colors.primary;
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}>
+    <View
+      style={[styles.card, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}
+      accessibilityRole="text"
+      accessibilityLabel={accessibilityLabel ?? `${title}، ${subtitle}، ${value}`}
+    >
       {rank != null && (
         <View style={[styles.rank, { backgroundColor: color + '18' }]}>
-          <Text variant="labelSmall" style={{ color, fontWeight: '700' }}>{rank}</Text>
+          <AppText variant="overline" style={{ color, fontWeight: '700' }}>
+            {rank}
+          </AppText>
         </View>
       )}
       <View style={[styles.iconWrap, { backgroundColor: color + '14' }]}>
         <MaterialCommunityIcons name={icon} size={22} color={color} />
       </View>
       <View style={styles.content}>
-        <Text variant="bodyLarge" style={{ fontWeight: '600', textAlign: 'right' }} numberOfLines={1}>
+        <AppText variant="bodyMedium" style={{ fontWeight: '600' }} numberOfLines={1}>
           {title}
-        </Text>
-        <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>
+        </AppText>
+        <AppText variant="caption" color="muted">
           {subtitle}
-        </Text>
+        </AppText>
       </View>
-      <Text variant="titleSmall" style={{ color, fontWeight: '700' }}>{value}</Text>
+      <AppText variant="bodyMedium" style={{ color, fontWeight: '700' }}>
+        {value}
+      </AppText>
     </View>
   );
 }
@@ -44,13 +62,25 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
-    gap: 12,
+    gap: spacing.md,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 8,
+    borderRadius: radius.lg - 2,
+    padding: spacing.md + 2,
+    marginBottom: spacing.sm,
   },
-  rank: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center' },
-  iconWrap: { width: 44, height: 44, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
-  content: { flex: 1, gap: 2 },
+  rank: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  iconWrap: {
+    width: 44,
+    height: 44,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  content: { flex: 1, gap: spacing.xs / 2, alignItems: 'flex-end' },
 });

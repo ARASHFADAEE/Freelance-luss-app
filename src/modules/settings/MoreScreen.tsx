@@ -14,7 +14,6 @@ import { useAppTheme } from '@/core/theme/useAppTheme';
 import { TrialBanner } from '@/shared/components/TrialBanner';
 
 const MENU_ITEMS: { title: string; icon: keyof typeof MaterialCommunityIcons.glyphMap; route: keyof MoreStackParamList; proOnly?: boolean }[] = [
-  { title: 'هزینه‌ها', icon: 'cash-minus', route: 'Expenses' },
   { title: 'خدمات', icon: 'briefcase-plus', route: 'Services' },
   { title: 'محاسبه‌گر', icon: 'calculator', route: 'Calculator' },
   { title: 'یادآوری‌ها', icon: 'bell-outline', route: 'Notifications' },
@@ -72,7 +71,7 @@ export function MoreScreen() {
         )}
 
         {MENU_ITEMS.map((item) => (
-          <Pressable key={item.title} onPress={() => navigation.navigate(item.route as 'Expenses')}>
+          <Pressable key={item.title} onPress={() => navigation.navigate(item.route as 'Services')}>
             <View style={[styles.menuRow, { borderColor: theme.colors.outlineVariant }]}>
               <MaterialCommunityIcons name="chevron-left" size={20} color={theme.colors.onSurfaceVariant} />
               <View style={styles.menuInfo}>

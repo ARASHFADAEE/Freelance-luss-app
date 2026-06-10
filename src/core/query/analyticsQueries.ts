@@ -4,6 +4,7 @@ import { useQueryClient, type QueryClient } from '@tanstack/react-query';
 
 const ANALYTICS_QUERY_ROOTS = new Set([
   'dashboard-stats',
+  'dashboard-insights',
   'monthly-data',
   'client-reports',
   'service-reports',
@@ -14,6 +15,7 @@ const ANALYTICS_QUERY_ROOTS = new Set([
 
 export const analyticsQueryKeys = {
   dashboardStats: ['dashboard-stats'] as const,
+  dashboardInsights: ['dashboard-insights'] as const,
   monthlyData: ['monthly-data'] as const,
   clientReports: ['client-reports'] as const,
   serviceReports: ['service-reports'] as const,

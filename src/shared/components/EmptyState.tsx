@@ -1,7 +1,10 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import { Button, Text, useTheme } from 'react-native-paper';
+import { Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { useTheme } from 'react-native-paper';
+import { radius, spacing } from '@/core/theme/tokens';
+import { AppText } from './AppText';
 
 interface Props {
   icon?: keyof typeof MaterialCommunityIcons.glyphMap;
@@ -9,30 +12,57 @@ interface Props {
   description?: string;
   actionLabel?: string;
   onAction?: () => void;
+  secondaryActionLabel?: string;
+  onSecondaryAction?: () => void;
+  illustration?: React.ReactNode;
 }
 
-export function EmptyState({ icon = 'inbox-outline', title, description, actionLabel, onAction }: Props) {
+export function EmptyState({
+  icon = 'inbox-outline',
+  title,
+  description,
+  actionLabel,
+  onAction,
+  secondaryActionLabel,
+  onSecondaryAction,
+  illustration,
+}: Props) {
   const theme = useTheme();
 
   return (
-    <View style={styles.container}>
-      <MaterialCommunityIcons
-        name={icon}
-        size={64}
-        color={theme.colors.onSurfaceVariant}
-        style={{ opacity: 0.5 }}
-      />
-      <Text variant="titleMedium" style={styles.title}>{title}</Text>
-      {description && (
-        <Text variant="bodyMedium" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'center' }}>
-          {description}
-        </Text>
+    <View
+      style={styles.container}
+      accessibilityRole="text"
+      accessibilityLabel={[title, description].filter(Boolean).join('. ')}
+    >
+      {illustration ?? (
+        <View style={[styles.iconCircle, { backgroundColor: theme.colors.surface }]}>
+          <MaterialCommunityIcons
+            name={icon}
+            size={48}
+            color={theme.colors.onSurfaceVariant}
+            style={{ opacity: 0.6 }}
+          />
+        </View>
       )}
-      {actionLabel && onAction && (
-        <Button mode="contained" onPress={onAction} style={{ marginTop: 16 }}>
+      <AppText variant="h3" align="center">
+        {title}
+      </AppText>
+      {description ? (
+        <AppText variant="body" color="muted" align="center" style={styles.description}>
+          {description}
+        </AppText>
+      ) : null}
+      {actionLabel && onAction ? (
+        <Button mode="contained" onPress={onAction} style={styles.primaryBtn}>
           {actionLabel}
         </Button>
-      )}
+      ) : null}
+      {secondaryActionLabel && onSecondaryAction ? (
+        <Button mode="text" onPress={onSecondaryAction}>
+          {secondaryActionLabel}
+        </Button>
+      ) : null}
     </View>
   );
 }
@@ -42,8 +72,22 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 32,
-    gap: 8,
+    padding: spacing['2xl'],
+    gap: spacing.sm,
   },
-  title: { fontWeight: '600', textAlign: 'center' },
+  iconCircle: {
+    width: 88,
+    height: 88,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: spacing.sm,
+  },
+  description: {
+    maxWidth: 280,
+  },
+  primaryBtn: {
+    marginTop: spacing.sm,
+    minWidth: 140,
+  },
 });

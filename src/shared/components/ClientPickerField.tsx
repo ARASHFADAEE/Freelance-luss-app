@@ -4,6 +4,7 @@ import { Button, Text, useTheme } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { Client } from '@/core/types';
 import { SearchBar } from './SearchBar';
+import { a11y } from '@/core/accessibility/labels';
 
 interface Props {
   label?: string;
@@ -11,9 +12,10 @@ interface Props {
   value: string;
   onChange: (clientId: string) => void;
   required?: boolean;
+  errorMessage?: string;
 }
 
-export function ClientPickerField({ label = 'مشتری', clients, value, onChange, required }: Props) {
+export function ClientPickerField({ label = 'مشتری', clients, value, onChange, required, errorMessage }: Props) {
   const theme = useTheme();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -43,10 +45,20 @@ export function ClientPickerField({ label = 'مشتری', clients, value, onChan
       </Text>
       <Pressable
         onPress={() => setOpen(true)}
+        accessibilityRole="button"
+        accessibilityLabel={
+          selected
+            ? `${label}، ${selected.fullName}${selected.companyName ? `، ${selected.companyName}` : ''}`
+            : `${label}، ${a11y.action.selectClient}`
+        }
         style={[
           styles.trigger,
           {
-            borderColor: selected ? theme.colors.primary : theme.colors.outlineVariant,
+            borderColor: errorMessage
+              ? theme.colors.error
+              : selected
+                ? theme.colors.primary
+                : theme.colors.outlineVariant,
             backgroundColor: theme.colors.surface,
           },
         ]}
@@ -77,6 +89,11 @@ export function ClientPickerField({ label = 'مشتری', clients, value, onChan
           <MaterialCommunityIcons name="account-search" size={24} color={theme.colors.primary} />
         </View>
       </Pressable>
+      {errorMessage ? (
+        <Text variant="bodySmall" style={{ color: theme.colors.error, textAlign: 'right', marginTop: 4 }}>
+          {errorMessage}
+        </Text>
+      ) : null}
 
       <Modal visible={open} animationType="slide" onRequestClose={() => setOpen(false)}>
         <View style={[styles.modal, { backgroundColor: theme.colors.background }]}>

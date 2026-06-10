@@ -1,6 +1,6 @@
-import React from 'react';
-import { FlatList, Pressable, StyleSheet, View } from 'react-native';
-import { Button, Text, useTheme } from 'react-native-paper';
+import React, { useMemo } from 'react';
+import { FlatList, StyleSheet, View } from 'react-native';
+import { Button } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
@@ -12,8 +12,13 @@ import { PROJECT_STATUS_LABELS } from '@/core/constants';
 import { formatCurrency } from '@/core/utils/currency';
 import type { ClientsStackParamList, RootTabParamList } from '@/navigation/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
+import { ListCard } from '@/shared/components/ListCard';
 import { ProgressBar } from '@/shared/components/ProgressBar';
+import { EmptyState } from '@/shared/components/EmptyState';
+import { AppText } from '@/shared/components/AppText';
 import { useProfileStore } from '@/stores/profileStore';
+import { useAppTheme } from '@/core/theme/useAppTheme';
+import { radius, spacing } from '@/core/theme/tokens';
 
 type Nav = CompositeNavigationProp<
   NativeStackNavigationProp<ClientsStackParamList>,
@@ -21,7 +26,7 @@ type Nav = CompositeNavigationProp<
 >;
 
 export function ClientDetailScreen() {
-  const theme = useTheme();
+  const theme = useAppTheme();
   const route = useRoute<RouteProp<ClientsStackParamList, 'ClientDetail'>>();
   const navigation = useNavigation<Nav>();
   const currency = useProfileStore((s) => s.profile?.currency ?? 'TOMAN');
@@ -36,41 +41,79 @@ export function ClientDetailScreen() {
     queryFn: () => projectRepository.getByClientId(route.params.clientId),
   });
 
+  const totalRevenue = useMemo(
+    () => projects.reduce((sum, p) => sum + p.receivedAmount, 0),
+    [projects],
+  );
+
   if (!client) return null;
 
+  const stickyFooter = (
+    <View style={styles.footerActions}>
+      <Button
+        mode="outlined"
+        onPress={() => navigation.navigate('ClientForm', { clientId: client.id })}
+        style={styles.footerBtn}
+      >
+        ویرایش
+      </Button>
+      <Button
+        mode="contained"
+        icon="briefcase-plus-outline"
+        onPress={() =>
+          navigation.navigate('Projects', { screen: 'ProjectForm', params: { clientId: client.id } })
+        }
+        style={styles.footerBtn}
+      >
+        افزودن پروژه
+      </Button>
+    </View>
+  );
+
   return (
-    <ScreenContainer>
+    <ScreenContainer stickyFooter={stickyFooter}>
       <View style={[styles.header, { borderColor: theme.colors.outlineVariant }]}>
-        <Text variant="titleLarge" style={{ fontWeight: '700', textAlign: 'right' }}>{client.fullName}</Text>
-        {client.companyName ? <Text variant="bodyMedium" style={{ textAlign: 'right' }}>{client.companyName}</Text> : null}
-        {client.phone ? <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>{client.phone}</Text> : null}
+        <AppText variant="h1">{client.fullName}</AppText>
+        {client.companyName ? <AppText variant="bodyMedium">{client.companyName}</AppText> : null}
+        {client.phone ? <AppText variant="caption" color="muted">{client.phone}</AppText> : null}
+        {client.email ? <AppText variant="caption" color="muted">{client.email}</AppText> : null}
+        {totalRevenue > 0 && (
+          <View style={[styles.revenuePill, { backgroundColor: theme.custom.successMuted }]}>
+            <AppText variant="caption" color="success" style={{ fontWeight: '600' }}>
+              درآمد ثبت‌شده: {formatCurrency(totalRevenue, currency)}
+            </AppText>
+          </View>
+        )}
       </View>
 
-      <View style={styles.actions}>
-        <Button mode="outlined" compact onPress={() => navigation.navigate('ClientForm', { clientId: client.id })}>ویرایش</Button>
-        <Button mode="contained" compact onPress={() => navigation.navigate('Projects', { screen: 'ProjectForm', params: { clientId: client.id } })}>
-            افزودن پروژه
-        </Button>
-      </View>
-
-      <Text variant="titleSmall" style={styles.section}>پروژه‌ها</Text>
+      <AppText variant="h3" style={styles.section}>
+        پروژه‌ها
+      </AppText>
       <FlatList
         data={projects}
         scrollEnabled={false}
         keyExtractor={(item) => item.id}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', color: theme.colors.onSurfaceVariant }}>پروژه‌ای نیست</Text>}
+        ListEmptyComponent={
+          <EmptyState
+            icon="briefcase-outline"
+            title="پروژه‌ای نیست"
+            actionLabel="افزودن پروژه"
+            onAction={() =>
+              navigation.navigate('Projects', { screen: 'ProjectForm', params: { clientId: client.id } })
+            }
+          />
+        }
         renderItem={({ item }) => {
           const progress = item.totalAmount > 0 ? (item.receivedAmount / item.totalAmount) * 100 : 0;
           return (
-            <Pressable onPress={() => navigation.navigate('Projects', { screen: 'ProjectDetail', params: { projectId: item.id } })}>
-              <View style={[styles.projectRow, { borderColor: theme.colors.outlineVariant }]}>
-                <Text variant="bodyMedium" style={{ fontWeight: '600', textAlign: 'right' }}>{item.title}</Text>
-                <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>
-                  {PROJECT_STATUS_LABELS[item.status]} · {formatCurrency(item.totalAmount, currency)}
-                </Text>
-                <ProgressBar progress={progress} />
-              </View>
-            </Pressable>
+            <ListCard
+              title={item.title}
+              subtitle={`${PROJECT_STATUS_LABELS[item.status]} · ${formatCurrency(item.totalAmount, currency)}`}
+              footer={<ProgressBar progress={progress} />}
+              onPress={() =>
+                navigation.navigate('Projects', { screen: 'ProjectDetail', params: { projectId: item.id } })
+              }
+            />
           );
         }}
       />
@@ -79,8 +122,23 @@ export function ClientDetailScreen() {
 }
 
 const styles = StyleSheet.create({
-  header: { borderBottomWidth: StyleSheet.hairlineWidth, paddingBottom: 16, marginBottom: 16 },
-  actions: { flexDirection: 'row', gap: 8, marginBottom: 20 },
-  section: { fontWeight: '600', marginBottom: 10, textAlign: 'right' },
-  projectRow: { borderWidth: StyleSheet.hairlineWidth, borderRadius: 10, padding: 12, marginBottom: 8 },
+  header: {
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    paddingBottom: spacing.lg,
+    marginBottom: spacing.lg,
+    gap: spacing.xs,
+    alignItems: 'flex-end',
+  },
+  revenuePill: {
+    marginTop: spacing.sm,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs + 2,
+    borderRadius: radius.full,
+  },
+  section: { marginBottom: spacing.md },
+  footerActions: {
+    flexDirection: 'row-reverse',
+    gap: spacing.sm,
+  },
+  footerBtn: { flex: 1 },
 });

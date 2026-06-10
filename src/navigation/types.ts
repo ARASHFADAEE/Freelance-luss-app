@@ -25,13 +25,15 @@ export type InvoicesStackParamList = {
   InvoiceDetail: { invoiceId: string };
 };
 
+export type FinancialStackParamList = {
+  FinancialHub: { initialTab?: 'expenses' | 'reports' } | undefined;
+  ExpenseForm: { expenseId?: string };
+};
+
 export type MoreStackParamList = {
   MoreMenu: undefined;
-  Expenses: undefined;
-  ExpenseForm: { expenseId?: string };
   Services: undefined;
   ServiceForm: { serviceId?: string };
-  Reports: undefined;
   Calculator: undefined;
   Notifications: undefined;
   Backup: undefined;
@@ -46,7 +48,7 @@ export type RootTabParamList = {
   Clients: NavigatorScreenParams<ClientsStackParamList>;
   Projects: NavigatorScreenParams<ProjectsStackParamList>;
   Invoices: NavigatorScreenParams<InvoicesStackParamList>;
-  Reports: undefined;
+  Financial: NavigatorScreenParams<FinancialStackParamList>;
   More: NavigatorScreenParams<MoreStackParamList>;
 };
 
@@ -61,3 +63,6 @@ export type InvoicesStackScreenProps<T extends keyof InvoicesStackParamList> =
 
 export type MoreStackScreenProps<T extends keyof MoreStackParamList> =
   NativeStackScreenProps<MoreStackParamList, T>;
+
+export type FinancialStackScreenProps<T extends keyof FinancialStackParamList> =
+  NativeStackScreenProps<FinancialStackParamList, T>;

@@ -41,7 +41,6 @@
     "react-native-view-shot": "5.1.0",
     "react-native-web": "^0.21.2",
     "uuid": "^14.0.0",
-    "victory-native": "^41.25.0",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

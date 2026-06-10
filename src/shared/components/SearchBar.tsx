@@ -1,6 +1,8 @@
 import React from 'react';
 import { StyleSheet } from 'react-native';
 import { Searchbar, useTheme } from 'react-native-paper';
+import { a11y } from '@/core/accessibility/labels';
+import { radius, spacing } from '@/core/theme/tokens';
 
 interface Props {
   value: string;
@@ -8,6 +10,7 @@ interface Props {
   placeholder?: string;
   onClear?: () => void;
   loading?: boolean;
+  accessibilityLabel?: string;
 }
 
 export function SearchBar({
@@ -16,6 +19,7 @@ export function SearchBar({
   placeholder = 'جستجو...',
   onClear,
   loading,
+  accessibilityLabel = a11y.action.search,
 }: Props) {
   const theme = useTheme();
 
@@ -31,6 +35,7 @@ export function SearchBar({
         onChangeText('');
         onClear?.();
       }}
+      accessibilityLabel={accessibilityLabel}
       style={[styles.bar, { backgroundColor: theme.colors.surface, borderColor: theme.colors.outlineVariant }]}
       inputStyle={styles.input}
       placeholderTextColor={theme.colors.onSurfaceVariant}
@@ -40,11 +45,11 @@ export function SearchBar({
 
 const styles = StyleSheet.create({
   bar: {
-    marginBottom: 12,
+    marginBottom: spacing.md,
     elevation: 0,
     borderWidth: 1,
-    borderRadius: 12,
-    height: 48,
+    borderRadius: radius.md,
+    minHeight: 48,
   },
   input: {
     textAlign: 'right',

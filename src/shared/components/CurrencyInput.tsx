@@ -11,6 +11,8 @@ interface Props {
   suffix?: string;
   labelAlign?: 'right' | 'center';
   contentAlign?: 'right' | 'center';
+  errorMessage?: string;
+  required?: boolean;
 }
 
 export function CurrencyInput({
@@ -20,9 +22,13 @@ export function CurrencyInput({
   suffix = 'تومان',
   labelAlign = 'right',
   contentAlign = 'right',
+  errorMessage,
+  required,
 }: Props) {
   const theme = useTheme();
   const display = value > 0 ? formatAmountDisplay(value) : '';
+  const hasError = Boolean(errorMessage);
+  const labelText = required ? `${label} *` : label;
 
   return (
     <View style={styles.wrap}>
@@ -34,13 +40,16 @@ export function CurrencyInput({
           labelAlign === 'center' && styles.labelCenter,
         ]}
       >
-        {label}
+        {labelText}
       </Text>
       <TextInput
         value={display}
         onChangeText={(text) => onChangeValue(parseAmount(text))}
         keyboardType="number-pad"
         mode="outlined"
+        error={hasError}
+        outlineColor={hasError ? theme.colors.error : undefined}
+        activeOutlineColor={hasError ? theme.colors.error : undefined}
         outlineStyle={inputStyles.outline}
         style={[inputStyles.base, styles.input]}
         contentStyle={[
@@ -51,11 +60,15 @@ export function CurrencyInput({
         placeholder="۰"
         placeholderTextColor={theme.colors.onSurfaceVariant}
       />
-      {value > 0 && labelAlign !== 'center' && (
+      {hasError ? (
+        <Text variant="bodySmall" style={[styles.hint, { color: theme.colors.error }]}>
+          {errorMessage}
+        </Text>
+      ) : value > 0 && labelAlign !== 'center' ? (
         <Text variant="labelSmall" style={[styles.hint, { color: theme.colors.onSurfaceVariant }]}>
           {formatAmountDisplay(value)} {suffix}
         </Text>
-      )}
+      ) : null}
     </View>
   );
 }
