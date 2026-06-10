@@ -157,7 +157,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.sm + 2,
-    direction: 'ltr',
     maxWidth: 360,
   },
   cell: {
