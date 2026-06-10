@@ -90,13 +90,15 @@ export function OtpCodeInput({ value, onChange, length = 6, error, onComplete }:
 
   const activeIndex = value.length < length ? value.length : length - 1;
 
-  const ltrProps = Platform.OS === 'web' ? ({ dir: 'ltr' } as const) : {};
+  const ltrWebProps = Platform.OS === 'web' ? ({ dir: 'ltr' } as const) : {};
+  const ltrNativeStyle = Platform.OS !== 'web' ? ({ direction: 'ltr' } as const) : undefined;
 
   return (
     <View style={styles.wrap} accessibilityLabel="ورود کد تأیید شش رقمی">
-      <View style={styles.ltrIsolate} {...ltrProps}>
+      <View style={[styles.ltrIsolate, ltrNativeStyle]} {...ltrWebProps}>
       <Pressable
-        style={styles.row}
+        style={[styles.row, ltrNativeStyle]}
+        {...ltrWebProps}
         onPress={() => focusAt(Math.min(value.length, length - 1))}
         accessibilityRole="none"
       >
@@ -159,7 +161,6 @@ const styles = StyleSheet.create({
   ltrIsolate: {
     width: '100%',
     alignItems: 'center',
-    direction: 'ltr',
   },
   row: {
     flexDirection: 'row',
@@ -167,7 +168,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm + 2,
     maxWidth: 360,
-    direction: 'ltr',
   },
   cell: {
     width: CELL_SIZE,

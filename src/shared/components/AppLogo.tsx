@@ -22,7 +22,7 @@ export function AppLogo({ size = 96, style }: Props) {
       ]}
     >
       <Image
-        source={require('@assets/icon.png')}
+        source={require('../../../assets/icon.png')}
         style={{ width: size, height: size, borderRadius }}
         resizeMode="contain"
         accessibilityLabel="لوگوی فریلنس پلاس"
