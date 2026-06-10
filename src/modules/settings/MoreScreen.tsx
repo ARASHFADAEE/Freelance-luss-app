@@ -1,27 +1,21 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, StyleSheet, View } from 'react-native';
-import { Button, Text } from 'react-native-paper';
-import { confirmLogout } from '@/core/utils/confirm';
+import { Button } from 'react-native-paper';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
+import { confirmLogout } from '@/core/utils/confirm';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MoreStackParamList } from '@/navigation/types';
 import { ScreenContainer } from '@/shared/components/ScreenContainer';
+import { PageHeader } from '@/shared/components/PageHeader';
+import { SettingsMenuGrid, type SettingsMenuItem } from '@/shared/components/SettingsMenuGrid';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSubscriptionStore } from '@/stores/subscriptionStore';
 import { useAuth } from '@/hooks/useAuth';
 import { useAppTheme } from '@/core/theme/useAppTheme';
 import { TrialBanner } from '@/shared/components/TrialBanner';
-
-const MENU_ITEMS: { title: string; icon: keyof typeof MaterialCommunityIcons.glyphMap; route: keyof MoreStackParamList; proOnly?: boolean }[] = [
-  { title: 'خدمات', icon: 'briefcase-plus', route: 'Services' },
-  { title: 'محاسبه‌گر', icon: 'calculator', route: 'Calculator' },
-  { title: 'یادآوری‌ها', icon: 'bell-outline', route: 'Notifications' },
-  { title: 'پشتیبان‌گیری', icon: 'backup-restore', route: 'Backup', proOnly: true },
-  { title: 'پروفایل', icon: 'account-circle', route: 'Profile' },
-  { title: 'تنظیمات', icon: 'cog', route: 'Settings' },
-  { title: 'اشتراک Pro', icon: 'crown', route: 'Subscription' },
-];
+import { AppText } from '@/shared/components/AppText';
+import { spacing, radius } from '@/core/theme/tokens';
 
 export function MoreScreen() {
   const theme = useAppTheme();
@@ -38,60 +32,119 @@ export function MoreScreen() {
     confirmLogout(() => logout());
   };
 
-  return (
-    <ScreenContainer>
-      <View style={{ paddingTop: insets.top + 4 }}>
-        <Text variant="titleLarge" style={styles.title}>بیشتر</Text>
+  const sections = useMemo(() => {
+    const proBadge = (proOnly?: boolean) =>
+      proOnly && !hasProFeatures() ? 'Pro' : undefined;
 
-        {isInTrial() && (
-          <TrialBanner
-            daysRemaining={trialDaysRemaining()}
-            onPress={() => navigation.navigate('Subscription')}
-          />
-        )}
+    const tools: SettingsMenuItem[] = [
+      {
+        id: 'services',
+        title: 'خدمات',
+        icon: 'briefcase-plus',
+        onPress: () => navigation.navigate('Services'),
+      },
+      {
+        id: 'calculator',
+        title: 'محاسبه‌گر',
+        icon: 'calculator',
+        onPress: () => navigation.navigate('Calculator'),
+      },
+      {
+        id: 'notifications',
+        title: 'یادآوری‌ها',
+        icon: 'bell-outline',
+        onPress: () => navigation.navigate('Notifications'),
+      },
+      {
+        id: 'backup',
+        title: 'پشتیبان‌گیری',
+        icon: 'backup-restore',
+        onPress: () => navigation.navigate('Backup'),
+        proOnly: true,
+        badge: proBadge(true),
+        locked: !hasProFeatures(),
+      },
+    ];
 
-        {!isPremium() && !isInTrial() && (
-          <Pressable
-            onPress={() => navigation.navigate('Subscription')}
-            style={[styles.proBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary }]}
-          >
-            <MaterialCommunityIcons name="crown" size={24} color={theme.colors.primary} />
-            <View style={{ flex: 1, alignItems: 'flex-end' }}>
-              <Text variant="bodyLarge" style={{ fontWeight: '600' }}>دوره آزمایشی تمام شد</Text>
-              <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant }}>برای گزارش‌ها و PDF اشتراک Pro بخرید</Text>
-            </View>
-          </Pressable>
-        )}
+    const account: SettingsMenuItem[] = [
+      {
+        id: 'profile',
+        title: 'پروفایل',
+        icon: 'account-circle',
+        onPress: () => navigation.navigate('Profile'),
+      },
+      {
+        id: 'settings',
+        title: 'تنظیمات',
+        icon: 'cog',
+        onPress: () => navigation.navigate('Settings'),
+      },
+    ];
 
-        {isPremium() && plan === 'pro' && (
-          <View style={[styles.proActive, { backgroundColor: theme.custom.success + '12', borderColor: theme.custom.success }]}>
-            <MaterialCommunityIcons name="crown" size={22} color={theme.custom.success} />
-            <Text variant="bodyMedium" style={{ fontWeight: '600' }}>اشتراک Pro فعال</Text>
+    const billing: SettingsMenuItem[] = [
+      {
+        id: 'subscription',
+        title: 'اشتراک Pro',
+        icon: 'crown',
+        onPress: () => navigation.navigate('Subscription'),
+        badge: isPremium() && plan === 'pro' ? 'فعال' : undefined,
+      },
+    ];
+
+    return [
+      { title: 'مدیریت', items: tools },
+      { title: 'حساب', items: account },
+      { title: 'اشتراک', items: billing },
+    ];
+  }, [navigation, hasProFeatures, isPremium, plan]);
+
+  const header = (
+    <PageHeader title="بیشتر" topInset={insets.top + spacing.xs}>
+      {isInTrial() ? (
+        <TrialBanner
+          daysRemaining={trialDaysRemaining()}
+          onPress={() => navigation.navigate('Subscription')}
+        />
+      ) : null}
+      {!isPremium() && !isInTrial() ? (
+        <Pressable
+          onPress={() => navigation.navigate('Subscription')}
+          accessibilityRole="button"
+          accessibilityLabel="دوره آزمایشی تمام شد، برای اشتراک Pro لمس کنید"
+          style={[styles.proBanner, { backgroundColor: theme.colors.primary + '12', borderColor: theme.colors.primary }]}
+        >
+          <MaterialCommunityIcons name="crown" size={22} color={theme.colors.primary} />
+          <View style={styles.proBannerText}>
+            <AppText variant="bodyMedium" style={{ fontWeight: '600' }}>
+              دوره آزمایشی تمام شد
+            </AppText>
+            <AppText variant="caption" color="muted">
+              برای گزارش‌ها و PDF اشتراک Pro بخرید
+            </AppText>
           </View>
-        )}
+        </Pressable>
+      ) : null}
+    </PageHeader>
+  );
 
-        {MENU_ITEMS.map((item) => (
-          <Pressable key={item.title} onPress={() => navigation.navigate(item.route as 'Services')}>
-            <View style={[styles.menuRow, { borderColor: theme.colors.outlineVariant }]}>
-              <MaterialCommunityIcons name="chevron-left" size={20} color={theme.colors.onSurfaceVariant} />
-              <View style={styles.menuInfo}>
-                <Text variant="bodyLarge">{item.title}</Text>
-                {item.proOnly && !hasProFeatures() && (
-                  <Text variant="labelSmall" style={{ color: theme.colors.primary }}>Pro</Text>
-                )}
-              </View>
-              <MaterialCommunityIcons name={item.icon} size={22} color={theme.colors.onSurfaceVariant} />
-            </View>
-          </Pressable>
-        ))}
-      </View>
+  return (
+    <ScreenContainer header={header} contentStyle={styles.content}>
+      {isPremium() && plan === 'pro' ? (
+        <View style={[styles.proActive, { backgroundColor: theme.custom.success + '12', borderColor: theme.custom.success }]}>
+          <AppText variant="bodyMedium" style={{ fontWeight: '600', color: theme.custom.success }}>
+            اشتراک Pro فعال
+          </AppText>
+        </View>
+      ) : null}
+
+      <SettingsMenuGrid sections={sections} />
 
       {user ? (
         <View style={[styles.accountFooter, { borderColor: theme.colors.outlineVariant }]}>
-          <Text variant="bodySmall" style={{ color: theme.colors.onSurfaceVariant, textAlign: 'right' }}>
+          <AppText variant="caption" color="muted">
             وارد شده با {user.phone}
-          </Text>
-          <Button mode="outlined" icon="logout" onPress={handleLogout} style={{ marginTop: 8 }}>
+          </AppText>
+          <Button mode="outlined" icon="logout" onPress={handleLogout} style={styles.logoutBtn}>
             خروج از حساب
           </Button>
         </View>
@@ -101,10 +154,29 @@ export function MoreScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { fontWeight: '700', marginBottom: 16, textAlign: 'right' },
-  proBanner: { flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderRadius: 12, padding: 14, marginBottom: 16 },
-  proActive: { flexDirection: 'row-reverse', alignItems: 'center', gap: 8, borderWidth: 1, borderRadius: 12, padding: 12, marginBottom: 16 },
-  menuRow: { flexDirection: 'row', alignItems: 'center', gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, paddingVertical: 14 },
-  menuInfo: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', gap: 8 },
-  accountFooter: { marginTop: 24, paddingTop: 16, borderTopWidth: StyleSheet.hairlineWidth },
+  content: { paddingTop: 0 },
+  proBanner: {
+    flexDirection: 'row-reverse',
+    alignItems: 'center',
+    gap: spacing.md,
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    minHeight: 44,
+  },
+  proBannerText: { flex: 1, alignItems: 'flex-end', gap: spacing.xs / 2 },
+  proActive: {
+    borderWidth: 1,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    marginBottom: spacing.lg,
+    alignItems: 'flex-end',
+  },
+  accountFooter: {
+    marginTop: spacing.xl,
+    paddingTop: spacing.lg,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    gap: spacing.sm,
+  },
+  logoutBtn: { marginTop: spacing.xs },
 });

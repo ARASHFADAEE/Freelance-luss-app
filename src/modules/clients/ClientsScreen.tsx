@@ -15,6 +15,7 @@ import { EmptyState } from '@/shared/components/EmptyState';
 import { ListCard } from '@/shared/components/ListCard';
 import { SkeletonList } from '@/shared/components/Skeleton';
 import { AppText } from '@/shared/components/AppText';
+import { PageHeader } from '@/shared/components/PageHeader';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { spacing } from '@/core/theme/tokens';
 
@@ -52,17 +53,14 @@ export function ClientsScreen() {
   }, [isSearching, clients.length]);
 
   const header = (
-    <View style={{ paddingTop: insets.top + spacing.xs }}>
-      <AppText variant="h1" style={styles.title}>
-        مشتریان
-      </AppText>
+    <PageHeader title="مشتریان" topInset={insets.top + spacing.xs}>
       <SearchBar
         value={search}
         onChangeText={setSearch}
         placeholder="نام، شرکت، موبایل یا ایمیل..."
         loading={isPendingSearch}
       />
-      {resultLabel && (
+      {resultLabel ? (
         <View style={styles.resultRow}>
           {isPendingSearch ? (
             <ActivityIndicator size={14} color={theme.colors.primary} />
@@ -73,15 +71,12 @@ export function ClientsScreen() {
               color={clients.length > 0 ? theme.colors.primary : theme.colors.onSurfaceVariant}
             />
           )}
-          <AppText
-            variant="caption"
-            color={clients.length > 0 ? 'primary' : 'muted'}
-          >
+          <AppText variant="caption" color={clients.length > 0 ? 'primary' : 'muted'}>
             {resultLabel}
           </AppText>
         </View>
-      )}
-    </View>
+      ) : null}
+    </PageHeader>
   );
 
   return (
@@ -110,6 +105,10 @@ export function ClientsScreen() {
           <FlatList
             data={clients}
             keyExtractor={(item) => item.id}
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews
             contentContainerStyle={{ paddingBottom: 100 }}
             onRefresh={refetch}
             refreshing={isFetching && !isLoading}
@@ -139,12 +138,11 @@ export function ClientsScreen() {
 }
 
 const styles = StyleSheet.create({
-  title: { marginBottom: spacing.md },
   resultRow: {
     flexDirection: 'row-reverse',
     alignItems: 'center',
     gap: spacing.xs + 2,
     marginBottom: spacing.sm + 2,
-    marginTop: -spacing.xs,
+    marginTop: spacing.sm,
   },
 });

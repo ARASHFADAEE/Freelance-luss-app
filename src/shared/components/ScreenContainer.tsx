@@ -113,7 +113,7 @@ export function ScreenContainer({
 const styles = StyleSheet.create({
   container: { flex: 1 },
   flex: { flex: 1 },
-  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.md },
+  padded: { paddingHorizontal: spacing.lg, paddingTop: spacing.xl },
   scrollContent: { paddingBottom: spacing.xl },
   footer: {
     paddingHorizontal: spacing.lg,

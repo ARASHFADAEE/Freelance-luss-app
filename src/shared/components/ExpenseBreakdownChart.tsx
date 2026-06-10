@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Svg, { Circle, G } from 'react-native-svg';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -21,7 +21,7 @@ interface Props {
 
 const CHART_COLORS = ['#DC2626', '#F59E0B', '#2563EB', '#059669', '#7C3AED', '#0891B2', '#DB2777'];
 
-export function ExpenseBreakdownChart({ data, currency = 'TOMAN', size = 148 }: Props) {
+function ExpenseBreakdownChartComponent({ data, currency = 'TOMAN', size = 148 }: Props) {
   const theme = useAppTheme();
   const total = useMemo(() => data.reduce((s, d) => s + d.amount, 0), [data]);
 
@@ -142,3 +142,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
 });
+
+export const ExpenseBreakdownChart = memo(ExpenseBreakdownChartComponent);

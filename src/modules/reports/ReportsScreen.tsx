@@ -20,6 +20,7 @@ import { CashFlowChart } from '@/shared/components/CashFlowChart';
 import { ChartContainer } from '@/shared/components/ChartContainer';
 import { ExpenseBreakdownChart } from '@/shared/components/ExpenseBreakdownChart';
 import { AppText } from '@/shared/components/AppText';
+import { PageHeader } from '@/shared/components/PageHeader';
 import { AmountText } from '@/shared/components/AmountText';
 import { KPICard } from '@/shared/components/KPICard';
 import { spacing, radius } from '@/core/theme/tokens';
@@ -153,22 +154,34 @@ export function ReportsScreen({ embedded = false }: Props) {
       ]}
       accessibilityLabel="صفحه گزارش‌های مالی"
     >
-      {!embedded && (
-        <AppText variant="h1" style={styles.title} accessibilityRole="header">
-          گزارش درآمد
-        </AppText>
+      {!embedded ? (
+        <PageHeader title="گزارش درآمد" topInset={insets.top + spacing.xs}>
+          <FilterChips
+            value={reportTab}
+            onChange={setReportTab}
+            options={[
+              { value: 'summary', label: 'خلاصه' },
+              { value: 'clients', label: 'مشتریان' },
+              { value: 'services', label: 'خدمات' },
+              { value: 'expenses', label: 'هزینه‌ها' },
+            ]}
+          />
+        </PageHeader>
+      ) : (
+        <View style={styles.embeddedTabs}>
+          <FilterChips
+            value={reportTab}
+            onChange={setReportTab}
+            accessibilityGroupLabel="بخش گزارش"
+            options={[
+              { value: 'summary', label: 'خلاصه' },
+              { value: 'clients', label: 'مشتریان' },
+              { value: 'services', label: 'خدمات' },
+              { value: 'expenses', label: 'هزینه‌ها' },
+            ]}
+          />
+        </View>
       )}
-
-      <FilterChips
-        value={reportTab}
-        onChange={setReportTab}
-        options={[
-          { value: 'summary', label: 'خلاصه' },
-          { value: 'clients', label: 'مشتریان' },
-          { value: 'services', label: 'خدمات' },
-          { value: 'expenses', label: 'هزینه‌ها' },
-        ]}
-      />
 
       {reportTab === 'summary' && (
         <>
@@ -330,7 +343,7 @@ export function ReportsScreen({ embedded = false }: Props) {
 const styles = StyleSheet.create({
   content: { padding: spacing.lg, paddingBottom: spacing['2xl'] },
   embeddedContent: { paddingTop: spacing.sm, paddingBottom: 100 },
-  title: { marginBottom: spacing.md },
+  embeddedTabs: { marginBottom: spacing.lg },
   dateBox: {
     borderWidth: StyleSheet.hairlineWidth,
     borderRadius: radius.lg,

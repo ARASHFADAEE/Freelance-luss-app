@@ -75,7 +75,7 @@ export function OtpScreen() {
             </View>
 
             <Text variant="titleMedium" style={styles.phoneText}>
-              کد ارسال‌شده به {maskPhone(phone)}
+            {maskPhone(phone)} کد ارسال‌شده به 
             </Text>
 
             {!IS_PRODUCTION && debugCode ? (

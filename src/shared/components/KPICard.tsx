@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -22,7 +22,7 @@ interface Props {
   accessibilityLabel?: string;
 }
 
-export function KPICard({
+function KPICardComponent({
   title,
   value,
   icon,
@@ -116,3 +116,5 @@ const styles = StyleSheet.create({
     marginBottom: spacing.xs,
   },
 });
+
+export const KPICard = memo(KPICardComponent);

@@ -25,6 +25,7 @@ import { InsightCard } from '@/shared/components/InsightCard';
 import { AppText } from '@/shared/components/AppText';
 import { APP_NAME } from '@/core/constants';
 import { useAppTheme } from '@/core/theme/useAppTheme';
+import { useResponsive } from '@/core/hooks/useResponsive';
 import { radius, spacing } from '@/core/theme/tokens';
 import type { RootTabParamList } from '@/navigation/types';
 
@@ -37,6 +38,7 @@ export function DashboardScreen() {
   const isInTrial = useIsInTrial();
   const trialDaysRemaining = useSubscriptionStore((s) => s.getTrialDaysRemaining);
   const currency = profile?.currency ?? 'TOMAN';
+  const { isCompact } = useResponsive();
 
   useRefetchAnalyticsOnFocus();
 
@@ -210,6 +212,7 @@ export function DashboardScreen() {
             <CashFlowChart
               key={chartKey}
               data={chartData}
+              height={isCompact ? 220 : 260}
               revenueColor={theme.custom.success}
               expenseColor={theme.custom.danger}
               unitLabel="میلیون تومان"
@@ -258,7 +261,7 @@ export function DashboardScreen() {
 
 const styles = StyleSheet.create({
   content: { paddingTop: 0 },
-  header: { marginBottom: spacing.lg },
+  header: { marginBottom: spacing.xl },
   heroCard: { marginBottom: spacing.md },
   kpiStrip: {
     flexDirection: 'row-reverse',

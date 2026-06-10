@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import type { DashboardInsight } from '@/core/types';
@@ -17,7 +17,7 @@ const toneColors = {
   info: (t: ReturnType<typeof useAppTheme>) => ({ color: t.custom.info, bg: t.custom.infoMuted }),
 } as const;
 
-export function InsightCard({ insight }: Props) {
+function InsightCardComponent({ insight }: Props) {
   const theme = useAppTheme();
   const { color, bg } = toneColors[insight.tone](theme);
 
@@ -69,3 +69,5 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
 });
+
+export const InsightCard = memo(InsightCardComponent);

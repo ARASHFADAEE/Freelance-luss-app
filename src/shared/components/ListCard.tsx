@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Pressable, StyleSheet, View, type ViewStyle } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -21,7 +21,7 @@ interface Props {
   accessibilityLabel?: string;
 }
 
-export function ListCard({
+function ListCardComponent({
   title,
   subtitle,
   onPress,
@@ -119,3 +119,5 @@ const styles = StyleSheet.create({
     marginTop: spacing.sm,
   },
 });
+
+export const ListCard = memo(ListCardComponent);

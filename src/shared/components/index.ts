@@ -16,3 +16,5 @@ export { ChartContainer } from './ChartContainer';
 export { QuickActionGrid, type QuickAction } from './QuickActionGrid';
 export { InsightCard } from './InsightCard';
 export { StatusBadge } from './StatusBadge';
+export { PageHeader } from './PageHeader';
+export { SettingsMenuGrid, type SettingsMenuItem } from './SettingsMenuGrid';

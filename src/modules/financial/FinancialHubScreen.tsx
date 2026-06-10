@@ -5,7 +5,7 @@ import type { RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import type { FinancialStackParamList } from '@/navigation/types';
 import { FilterChips } from '@/shared/components/FilterChips';
-import { AppText } from '@/shared/components/AppText';
+import { PageHeader } from '@/shared/components/PageHeader';
 import { ExpensesScreen } from '@/modules/expenses/ExpensesScreen';
 import { ReportsScreen } from '@/modules/reports/ReportsScreen';
 import { spacing } from '@/core/theme/tokens';
@@ -24,18 +24,17 @@ export function FinancialHubScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.header, { paddingTop: insets.top + spacing.xs }]}>
-        <AppText variant="h1" style={styles.title}>
-          مالی
-        </AppText>
-        <FilterChips
-          value={tab}
-          onChange={setTab}
-          options={[
-            { value: 'expenses', label: 'هزینه‌ها' },
-            { value: 'reports', label: 'گزارش‌ها' },
-          ]}
-        />
+      <View style={styles.header}>
+        <PageHeader title="مالی" topInset={insets.top + spacing.xs}>
+          <FilterChips
+            value={tab}
+            onChange={setTab}
+            options={[
+              { value: 'expenses', label: 'هزینه‌ها' },
+              { value: 'reports', label: 'گزارش‌ها' },
+            ]}
+          />
+        </PageHeader>
       </View>
       <View style={styles.body}>
         {tab === 'expenses' ? <ExpensesScreen embedded /> : <ReportsScreen embedded />}
@@ -48,8 +47,6 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   header: {
     paddingHorizontal: spacing.lg,
-    paddingBottom: spacing.sm,
   },
-  title: { marginBottom: spacing.md },
   body: { flex: 1 },
 });

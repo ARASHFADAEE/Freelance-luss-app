@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { memo, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
 import Svg, { Line, Rect, Text as SvgText } from 'react-native-svg';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -33,7 +33,7 @@ function formatAxisValue(value: number): string {
   return toPersianDigits(value < 1 ? value.toFixed(1) : value.toFixed(0));
 }
 
-export function CashFlowChart({
+function CashFlowChartComponent({
   data,
   height = 260,
   revenueColor,
@@ -201,3 +201,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.sm,
   },
 });
+
+export const CashFlowChart = memo(CashFlowChartComponent);

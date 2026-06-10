@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +15,7 @@ import { ListCard } from '@/shared/components/ListCard';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { ProgressBar } from '@/shared/components/ProgressBar';
 import { SkeletonList } from '@/shared/components/Skeleton';
-import { AppText } from '@/shared/components/AppText';
+import { PageHeader } from '@/shared/components/PageHeader';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -34,16 +34,11 @@ export function ProjectsScreen() {
   });
 
   const header = (
-    <View style={{ paddingTop: insets.top + spacing.xs }}>
-      <AppText variant="h1" style={styles.title}>
-        پروژه‌ها
-      </AppText>
-      {projects.length > 0 && (
-        <AppText variant="caption" color="muted">
-          {projects.length} پروژه
-        </AppText>
-      )}
-    </View>
+    <PageHeader
+      title="پروژه‌ها"
+      subtitle={projects.length > 0 ? `${projects.length} پروژه` : undefined}
+      topInset={insets.top + spacing.xs}
+    />
   );
 
   return (
@@ -63,6 +58,10 @@ export function ProjectsScreen() {
           <FlatList
             data={projects}
             keyExtractor={(item) => item.id}
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews
             contentContainerStyle={{ paddingBottom: 100 }}
             onRefresh={refetch}
             refreshing={isFetching && !isLoading}
@@ -100,6 +99,3 @@ export function ProjectsScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { marginBottom: spacing.xs },
-});

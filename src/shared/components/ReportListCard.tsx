@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -15,7 +15,7 @@ interface Props {
   accessibilityLabel?: string;
 }
 
-export function ReportListCard({
+function ReportListCardComponent({
   icon,
   title,
   subtitle,
@@ -84,3 +84,5 @@ const styles = StyleSheet.create({
   },
   content: { flex: 1, gap: spacing.xs / 2, alignItems: 'flex-end' },
 });
+
+export const ReportListCard = memo(ReportListCardComponent);

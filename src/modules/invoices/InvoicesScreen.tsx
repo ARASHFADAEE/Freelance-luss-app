@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { FlatList, View } from 'react-native';
 import { useTheme } from 'react-native-paper';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigation } from '@react-navigation/native';
@@ -16,7 +16,7 @@ import { FilterChips } from '@/shared/components/FilterChips';
 import { ListCard } from '@/shared/components/ListCard';
 import { StatusBadge } from '@/shared/components/StatusBadge';
 import { SkeletonList } from '@/shared/components/Skeleton';
-import { AppText } from '@/shared/components/AppText';
+import { PageHeader } from '@/shared/components/PageHeader';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAppTheme } from '@/core/theme/useAppTheme';
@@ -68,10 +68,7 @@ export function InvoicesScreen() {
   }, [invoices, filter, projectMap]);
 
   const header = (
-    <View style={{ paddingTop: insets.top + spacing.xs }}>
-      <AppText variant="h1" style={styles.title}>
-        فاکتورها
-      </AppText>
+    <PageHeader title="فاکتورها" topInset={insets.top + spacing.xs}>
       <FilterChips
         value={filter}
         onChange={setFilter}
@@ -81,7 +78,7 @@ export function InvoicesScreen() {
           { value: 'paid', label: 'پرداخت‌شده' },
         ]}
       />
-    </View>
+    </PageHeader>
   );
 
   return (
@@ -100,6 +97,10 @@ export function InvoicesScreen() {
           <FlatList
             data={filtered}
             keyExtractor={(item) => item.id}
+            initialNumToRender={10}
+            maxToRenderPerBatch={8}
+            windowSize={7}
+            removeClippedSubviews
             contentContainerStyle={{ paddingBottom: 100 }}
             onRefresh={refetch}
             refreshing={isFetching && !isLoading}
@@ -137,6 +138,3 @@ export function InvoicesScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { marginBottom: spacing.md },
-});
