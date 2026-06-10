@@ -17,39 +17,28 @@ const queryClient = new QueryClient({
   },
 });
 
-function ThemedApp({ children }: { children: React.ReactNode }) {
+export function AppProviders({ children }: { children: React.ReactNode }) {
   const isDark = useThemeStore((s) => s.isDark);
   const theme = isDark ? darkTheme : lightTheme;
-
-  return (
-    <PaperProvider theme={theme}>
-      <StatusBar style={isDark ? 'light' : 'dark'} />
-      {children}
-    </PaperProvider>
-  );
-}
-
-export function AppProviders({ children }: { children: React.ReactNode }) {
   const [fontsLoaded] = useFonts({
     IRANYekanX: require('../../../assets/fonts/IRANYekanXVFaNumVF.ttf'),
   });
 
-  if (!fontsLoaded) {
-    return (
-      <View style={styles.root}>
-        <AppSplash message="بارگذاری فونت‌ها..." />
-      </View>
-    );
-  }
-
   return (
     <GestureHandlerRootView style={styles.root}>
       <SafeAreaProvider>
-        <QueryClientProvider client={queryClient}>
-          <DatabaseProvider>
-            <ThemedApp>{children}</ThemedApp>
-          </DatabaseProvider>
-        </QueryClientProvider>
+        <PaperProvider theme={theme}>
+          <StatusBar style={isDark ? 'light' : 'dark'} />
+          {!fontsLoaded ? (
+            <View style={styles.root}>
+              <AppSplash message="بارگذاری فونت‌ها..." />
+            </View>
+          ) : (
+            <QueryClientProvider client={queryClient}>
+              <DatabaseProvider>{children}</DatabaseProvider>
+            </QueryClientProvider>
+          )}
+        </PaperProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>
   );

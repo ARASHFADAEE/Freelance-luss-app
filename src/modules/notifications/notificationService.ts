@@ -1,18 +1,38 @@
-import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 import { invoiceRepository, projectRepository } from '@/database';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: true,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+type NotificationsModule = typeof import('expo-notifications');
+
+let notificationsModule: NotificationsModule | null = null;
+let handlerConfigured = false;
+
+async function getNotifications(): Promise<NotificationsModule | null> {
+  if (Platform.OS === 'web') return null;
+
+  if (!notificationsModule) {
+    notificationsModule = await import('expo-notifications');
+  }
+
+  if (!handlerConfigured && notificationsModule) {
+    notificationsModule.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: true,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+    handlerConfigured = true;
+  }
+
+  return notificationsModule;
+}
 
 export async function requestNotificationPermissions(): Promise<boolean> {
+  const Notifications = await getNotifications();
+  if (!Notifications) return false;
+
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'یادآوری‌ها',
@@ -28,6 +48,9 @@ export async function requestNotificationPermissions(): Promise<boolean> {
 }
 
 export async function scheduleInvoiceReminders(): Promise<void> {
+  const Notifications = await getNotifications();
+  if (!Notifications) return;
+
   await Notifications.cancelAllScheduledNotificationsAsync();
 
   const invoices = await invoiceRepository.getAll();
@@ -59,6 +82,9 @@ export async function scheduleInvoiceReminders(): Promise<void> {
 }
 
 export async function scheduleProjectReminders(): Promise<void> {
+  const Notifications = await getNotifications();
+  if (!Notifications) return;
+
   const projects = await projectRepository.getActive();
   const now = new Date();
 
@@ -87,11 +113,19 @@ export async function scheduleProjectReminders(): Promise<void> {
   }
 }
 
-export async function setupAllReminders(): Promise<void> {
+export async function setupAllReminders(): Promise<{ ok: boolean; message: string }> {
+  if (Platform.OS === 'web') {
+    return { ok: false, message: 'یادآوری زمان‌بندی‌شده فقط روی موبایل پشتیبانی می‌شود' };
+  }
+
   const granted = await requestNotificationPermissions();
-  if (!granted) return;
+  if (!granted) {
+    return { ok: false, message: 'مجوز اعلان داده نشده' };
+  }
+
   await scheduleInvoiceReminders();
   await scheduleProjectReminders();
+  return { ok: true, message: 'یادآوری‌ها تنظیم شدند' };
 }
 
 export async function sendTestNotification(): Promise<{ ok: boolean; message: string }> {
@@ -110,6 +144,11 @@ export async function sendTestNotification(): Promise<{ ok: boolean; message: st
       return { ok: false, message: 'مجوز اعلان مرورگر داده نشده' };
     }
     return { ok: false, message: 'اعلان در این مرورگر پشتیبانی نمی‌شود' };
+  }
+
+  const Notifications = await getNotifications();
+  if (!Notifications) {
+    return { ok: false, message: 'ماژول اعلان در دسترس نیست' };
   }
 
   const granted = await requestNotificationPermissions();

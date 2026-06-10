@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text as RNText, type TextProps as RNTextProps, StyleSheet } from 'react-native';
 import { FONT_FAMILY } from '@/core/theme/fonts';
-import { typography, type TypographyVariant } from '@/core/theme/tokens';
+import { typography, semanticLight, type TypographyVariant } from '@/core/theme/tokens';
 import { useAppTheme } from '@/core/theme/useAppTheme';
 
 interface Props extends RNTextProps {
@@ -33,10 +33,12 @@ export function AppText({
   const theme = useAppTheme();
   const token = typography[variant];
   const customKey = colorKeyMap[color];
+  const custom = theme.custom ?? semanticLight;
+
   const textColor =
     customKey === 'primary' || customKey === 'secondary'
-      ? theme.colors[customKey]
-      : theme.custom[customKey];
+      ? (theme.colors[customKey] ?? custom[customKey])
+      : (custom[customKey] ?? theme.colors.onSurfaceVariant);
 
   return (
     <RNText

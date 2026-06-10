@@ -21,8 +21,8 @@ export function NotificationsScreen() {
   const handleSetup = async () => {
     setLoading(true);
     try {
-      await setupAllReminders();
-      setSnack('یادآوری‌ها تنظیم شدند');
+      const result = await setupAllReminders();
+      setSnack(result.message);
     } catch {
       setSnack('خطا در تنظیم یادآوری‌ها');
     } finally {
