@@ -31,11 +31,14 @@ export function OtpScreen() {
     return () => clearInterval(t);
   }, [resendIn]);
 
-  const handleVerify = async () => {
+  const handleVerify = async (overrideCode?: string) => {
+    const codeToVerify = overrideCode ?? code;
+    if (codeToVerify.length < 6) return;
+
     setError('');
     setLoading(true);
     try {
-      await verifyOtp(phone, code);
+      await verifyOtp(phone, codeToVerify);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'کد نامعتبر است');
     } finally {
@@ -75,24 +78,29 @@ export function OtpScreen() {
             </View>
 
             <Text variant="titleMedium" style={styles.phoneText}>
-            {maskPhone(phone)} کد ارسال‌شده به 
+              کد ارسال‌شده به {maskPhone(phone)}
             </Text>
 
             {!IS_PRODUCTION && debugCode ? (
               <Text variant="labelMedium" style={styles.debug}>کد تست: {debugCode}</Text>
             ) : null}
 
-            <OtpCodeInput
-              value={code}
-              onChange={(v) => setCode(normalizeOtpCode(v))}
-              error={!!error}
-            />
+            <View style={styles.otpWrap}>
+              <OtpCodeInput
+                value={code}
+                onChange={(v) => setCode(normalizeOtpCode(v))}
+                error={!!error}
+                onComplete={(fullCode) => {
+                  if (!loading) void handleVerify(fullCode);
+                }}
+              />
+            </View>
 
             {error ? <Text variant="bodySmall" style={styles.error}>{error}</Text> : null}
 
             <Button
               mode="contained"
-              onPress={handleVerify}
+              onPress={() => void handleVerify()}
               loading={loading}
               disabled={code.length < 6}
               buttonColor="#1e3a8a"
@@ -149,10 +157,15 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   phoneText: {
-    color: 'rgba(255, 255, 255, 0.85)',
+    color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
     marginBottom: 20,
     fontWeight: '600',
+    lineHeight: 26,
+  },
+  otpWrap: {
+    width: '100%',
+    alignItems: 'center',
   },
   debug: { color: '#bfdbfe', textAlign: 'center', marginBottom: 12 },
   error: { color: '#fecaca', textAlign: 'center', marginBottom: 8 },

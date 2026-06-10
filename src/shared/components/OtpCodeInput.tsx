@@ -8,6 +8,8 @@ import {
   type NativeSyntheticEvent,
   type TextInputKeyPressEventData,
 } from 'react-native';
+import { FONT_FAMILY } from '@/core/theme/fonts';
+import { radius, spacing } from '@/core/theme/tokens';
 import { normalizeOtpCode } from '@/services/auth/OtpService';
 
 interface Props {
@@ -15,10 +17,14 @@ interface Props {
   onChange: (code: string) => void;
   length?: number;
   error?: boolean;
+  onComplete?: (code: string) => void;
 }
 
-export function OtpCodeInput({ value, onChange, length = 6, error }: Props) {
+const CELL_SIZE = 52;
+
+export function OtpCodeInput({ value, onChange, length = 6, error, onComplete }: Props) {
   const inputs = useRef<(TextInput | null)[]>([]);
+  const prevLength = useRef(0);
   const digits = Array.from({ length }, (_, i) => value[i] ?? '');
 
   const focusAt = (index: number) => {
@@ -26,8 +32,16 @@ export function OtpCodeInput({ value, onChange, length = 6, error }: Props) {
   };
 
   useEffect(() => {
-    focusAt(0);
+    const t = setTimeout(() => focusAt(0), 120);
+    return () => clearTimeout(t);
   }, []);
+
+  useEffect(() => {
+    if (value.length === length && prevLength.current < length && onComplete) {
+      onComplete(value);
+    }
+    prevLength.current = value.length;
+  }, [value, length, onComplete]);
 
   const updateCode = (nextDigits: string[]) => {
     onChange(nextDigits.join('').replace(/\s/g, ''));
@@ -74,79 +88,159 @@ export function OtpCodeInput({ value, onChange, length = 6, error }: Props) {
     }
   };
 
+  const activeIndex = value.length < length ? value.length : length - 1;
+
   return (
-    <Pressable style={styles.row} onPress={() => focusAt(Math.min(value.length, length - 1))}>
-      {digits.map((digit, index) => {
-        const activeIndex = value.length < length ? value.length : length - 1;
-        const isActive = index === activeIndex;
-        return (
-          <TextInput
-            key={index}
-            ref={(ref) => {
-              inputs.current[index] = ref;
-            }}
-            value={digit}
-            onChangeText={(text) => handleChange(text, index)}
-            onKeyPress={(event) => handleKeyPress(event, index)}
-            keyboardType="number-pad"
-            maxLength={length}
-            selectTextOnFocus
-            style={[
-              styles.box,
-              digit ? styles.boxFilled : null,
-              isActive ? styles.boxActive : null,
-              error ? styles.boxError : null,
-            ]}
-            textAlign="center"
-            {...Platform.select({
-              web: { inputMode: 'numeric' as const },
-              default: {},
-            })}
-          />
-        );
-      })}
-    </Pressable>
+    <View style={styles.wrap} accessibilityLabel="ورود کد تأیید شش رقمی">
+      <Pressable
+        style={styles.row}
+        onPress={() => focusAt(Math.min(value.length, length - 1))}
+        accessibilityRole="none"
+      >
+        {digits.map((digit, index) => {
+          const isActive = index === activeIndex;
+          const isFilled = !!digit;
+
+          return (
+            <Pressable
+              key={index}
+              onPress={() => focusAt(index)}
+              style={[
+                styles.cell,
+                isFilled && styles.cellFilled,
+                isActive && styles.cellActive,
+                error && styles.cellError,
+              ]}
+              accessibilityRole="none"
+            >
+              <TextInput
+                ref={(ref) => {
+                  inputs.current[index] = ref;
+                }}
+                value={digit}
+                onChangeText={(text) => handleChange(text, index)}
+                onKeyPress={(event) => handleKeyPress(event, index)}
+                onFocus={() => focusAt(index)}
+                keyboardType="number-pad"
+                maxLength={length}
+                selectTextOnFocus
+                caretHidden
+                style={styles.input}
+                textAlign="center"
+                textContentType="oneTimeCode"
+                autoComplete={Platform.OS === 'web' ? 'one-time-code' : 'sms-otp'}
+                accessibilityLabel={`رقم ${index + 1} از ${length}`}
+                accessibilityState={{ selected: isActive }}
+                {...Platform.select({
+                  web: { inputMode: 'numeric' as const },
+                  default: {},
+                })}
+              />
+              {!digit && !isActive ? <View style={styles.placeholderDot} pointerEvents="none" /> : null}
+              {isActive && !digit ? <View style={styles.caret} pointerEvents="none" /> : null}
+            </Pressable>
+          );
+        })}
+      </Pressable>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row-reverse',
-    justifyContent: 'center',
-    gap: 10,
-    marginBottom: 16,
+  wrap: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: spacing.lg,
   },
-  box: {
-    width: 48,
-    height: 56,
-    borderRadius: 14,
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: spacing.sm + 2,
+    direction: 'ltr',
+    maxWidth: 360,
+  },
+  cell: {
+    width: CELL_SIZE,
+    height: CELL_SIZE + 4,
+    borderRadius: radius.md + 2,
     borderWidth: 2,
-    borderColor: 'rgba(255, 255, 255, 0.35)',
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
-    fontSize: 24,
-    fontWeight: '700',
-    color: '#0f172a',
+    borderColor: 'rgba(255, 255, 255, 0.38)',
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
     ...Platform.select({
       web: {
-        outlineStyle: 'none',
-        transition: 'border-color 0.2s, background-color 0.2s, transform 0.15s',
+        transition: 'border-color 0.2s, background-color 0.2s, box-shadow 0.2s, transform 0.15s',
       },
       default: {},
     }),
   },
-  boxFilled: {
-    borderColor: 'rgba(30, 58, 138, 0.55)',
-    backgroundColor: 'rgba(255, 255, 255, 0.55)',
+  cellFilled: {
+    borderColor: 'rgba(37, 99, 235, 0.65)',
+    backgroundColor: 'rgba(255, 255, 255, 0.62)',
   },
-  boxActive: {
-    borderColor: '#1e3a8a',
-    backgroundColor: 'rgba(255, 255, 255, 0.72)',
+  cellActive: {
+    borderColor: '#2563EB',
+    backgroundColor: 'rgba(255, 255, 255, 0.78)',
     ...Platform.select({
-      web: { transform: 'scale(1.04)' },
+      web: {
+        boxShadow: '0 0 0 3px rgba(37, 99, 235, 0.22)',
+        transform: 'scale(1.05)',
+      },
+      ios: {
+        shadowColor: '#2563EB',
+        shadowOpacity: 0.25,
+        shadowRadius: 6,
+        shadowOffset: { width: 0, height: 2 },
+      },
+      android: {
+        elevation: 3,
+      },
+    }),
+  },
+  cellError: {
+    borderColor: '#EF4444',
+    backgroundColor: 'rgba(254, 226, 226, 0.45)',
+    ...Platform.select({
+      web: { boxShadow: '0 0 0 3px rgba(239, 68, 68, 0.18)' },
       default: {},
     }),
   },
-  boxError: {
-    borderColor: '#ef4444',
+  input: {
+    ...StyleSheet.absoluteFill,
+    fontFamily: FONT_FAMILY,
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#0F172A',
+    padding: 0,
+    margin: 0,
+    borderWidth: 0,
+    backgroundColor: 'transparent',
+    textAlign: 'center',
+    ...Platform.select({
+      web: { lineHeight: CELL_SIZE + 4 },
+      android: {
+        textAlignVertical: 'center',
+        includeFontPadding: false,
+      },
+      default: { paddingTop: 2 },
+    }),
+  },
+  placeholderDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: 'rgba(255, 255, 255, 0.45)',
+    position: 'absolute',
+  },
+  caret: {
+    width: 2,
+    height: 22,
+    borderRadius: 1,
+    backgroundColor: '#2563EB',
+    position: 'absolute',
+    opacity: 0.85,
   },
 });
