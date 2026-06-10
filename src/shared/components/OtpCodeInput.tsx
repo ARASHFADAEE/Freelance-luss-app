@@ -90,8 +90,11 @@ export function OtpCodeInput({ value, onChange, length = 6, error, onComplete }:
 
   const activeIndex = value.length < length ? value.length : length - 1;
 
+  const ltrProps = Platform.OS === 'web' ? ({ dir: 'ltr' } as const) : {};
+
   return (
     <View style={styles.wrap} accessibilityLabel="ورود کد تأیید شش رقمی">
+      <View style={styles.ltrIsolate} {...ltrProps}>
       <Pressable
         style={styles.row}
         onPress={() => focusAt(Math.min(value.length, length - 1))}
@@ -132,7 +135,7 @@ export function OtpCodeInput({ value, onChange, length = 6, error, onComplete }:
                 accessibilityLabel={`رقم ${index + 1} از ${length}`}
                 accessibilityState={{ selected: isActive }}
                 {...Platform.select({
-                  web: { inputMode: 'numeric' as const },
+                  web: { inputMode: 'numeric' as const, dir: 'ltr' as const },
                   default: {},
                 })}
               />
@@ -142,6 +145,7 @@ export function OtpCodeInput({ value, onChange, length = 6, error, onComplete }:
           );
         })}
       </Pressable>
+      </View>
     </View>
   );
 }
@@ -152,12 +156,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: spacing.lg,
   },
+  ltrIsolate: {
+    width: '100%',
+    alignItems: 'center',
+    direction: 'ltr',
+  },
   row: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
     gap: spacing.sm + 2,
     maxWidth: 360,
+    direction: 'ltr',
   },
   cell: {
     width: CELL_SIZE,
@@ -218,6 +228,7 @@ const styles = StyleSheet.create({
     borderWidth: 0,
     backgroundColor: 'transparent',
     textAlign: 'center',
+    writingDirection: 'ltr',
     ...Platform.select({
       web: { lineHeight: CELL_SIZE + 4 },
       android: {
